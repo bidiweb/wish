@@ -2,7 +2,7 @@
 
 ##Core Spec (v0.2)
 
-WiSH  essentially layers a WS compatible framing over HTTP (semantics only).
+WiSH essentially layers a WS compatible framing over HTTP (semantics only). WiSH stands for Web in Strict HTTP.
 
 WiSH follows the basic [WebSocket framing] [1] as following:
 
