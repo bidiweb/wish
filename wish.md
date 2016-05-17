@@ -1,9 +1,10 @@
-# wish
-WiSH Spec: websocket (framing) over HTTP (semantics)
+# WiSH: WebSocket over HTTP
 
 ##WiSH Protocol Spec (v0.2, 4/12/2016)
 
-##WiSH follows the basic [WebSocket framing] [1] as following
+WiSH  essentially layers a WS compatible framing over HTTP (semantics only).
+
+WiSH follows the basic [WebSocket framing] [1] as following
 1. opcode (8 bit)
 2. length (64bit)
 3. payload
