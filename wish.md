@@ -1,17 +1,18 @@
 # WiSH: WebSocket over HTTP
 
-##WiSH Protocol Spec (v0.2, 4/12/2016)
+##Core Spec (v0.2)
 
 WiSH  essentially layers a WS compatible framing over HTTP (semantics only).
 
-WiSH follows the basic [WebSocket framing] [1] as following
+WiSH follows the basic [WebSocket framing] [1] as following:
+
 1. opcode (8 bit)
 2. length (64bit)
 3. payload
 
-WiSH always uses HTTP/* as the underlying "multiplexed byte-stream transport"
-and therefore, many WS-specific framing details such as masking,
-handshake/status and fragmentation are not needed.
+##Notes
+
+WiSH always uses HTTP/* as the underlying "multiplexed byte-stream transport" and therefore, many WS-specific framing details such as masking, handshake/status and fragmentation are not needed.
 
 Compression, extensions are not needed now.
 
