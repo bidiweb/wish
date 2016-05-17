@@ -1,10 +1,9 @@
 # wish
 WiSH Spec: websocket (framing) over HTTP (semantics)
 
-WiSH Protocol Spec (v0.2, 4/12/2016)
+##WiSH Protocol Spec (v0.2, 4/12/2016)
 
-WiSH follows the basic WebSocket framing (https://tools.ietf.org/html/rfc6455)
-in the following ways:
+##WiSH follows the basic [WebSocket framing] [1] as following
 1. opcode (8 bit)
 2. length (64bit)
 3. payload
@@ -17,6 +16,7 @@ Compression, extensions are not needed now.
 
 Relevance of WS status code is TBD.
 
-A high-level protocol such as WebChannel (https://github.com/bidiweb/webchannel)
-may use WiSH as the framing protocol to support bi-directional communication
-over HTTP and for Web and Internet clients.
+A high-level protocol such as [WebChannel] [2] may use WiSH as the framing protocol to support bi-directional communication over HTTP and for Web and Internet clients.
+
+[1]: https://tools.ietf.org/html/rfc6455
+[2]: https://github.com/bidiweb/webchannel
