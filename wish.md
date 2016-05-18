@@ -7,7 +7,7 @@ WiSH essentially layers a WS compatible framing over HTTP (semantics only). WiSH
 WiSH follows the basic [WebSocket framing] [1] as following:
 
 1. opcode (8 bit)
-2. length (8-64bit)
+2. length (1-9 bytes)
 3. payload
 
 ##Notes
