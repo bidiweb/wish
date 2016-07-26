@@ -1,0 +1,280 @@
+
+
+
+
+Network Working Group                                         T. Yoshino
+Internet-Draft                                                    W. Zhu
+Intended status: Standards Track                            Google, Inc.
+Expires: January 26, 2017                                  July 25, 2016
+
+
+                             WiSH Protocol
+                         draft-yoshino-wish-00
+
+Abstract
+
+   This document defines a protocol named WiSH which supports bi-
+   directional message-based communication over the standard HTTP
+   semantics.  The WiSH protocol layers the WebSocket (compatible)
+   framing over HTTP.  You may want to think about WiSH as a binary and
+   bi-directional alternative to the framing defined for server-sent
+   events [SSE].
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on January 26, 2017.
+
+Copyright Notice
+
+   Copyright (c) 2016 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+
+
+
+
+Yoshino & Zhu           Expires January 26, 2017                [Page 1]
+
+Internet-Draft                WiSH Protocol                    July 2016
+
+
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Conformance Requirements and Terminology  . . . . . . . . . .   3
+   3.  WiSH Protocol . . . . . . . . . . . . . . . . . . . . . . . .   3
+   4.  Framing . . . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   5.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   4
+   6.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     6.1.  Normative References  . . . . . . . . . . . . . . . . . .   4
+     6.2.  References  . . . . . . . . . . . . . . . . . . . . . . .   4
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   5
+
+1.  Introduction
+
+   The WebSocket was proposed to provide client-server bi-directional
+   messaging for the Web natively.  It's been implemented and deployed
+   widely, but there're still missing semantics and functionalities.
+   See [BidiwebSurvey].
+
+   The WiSH protocol is a protocol for use over the standard HTTP
+   semantics to provide bi-directional messaging semantics.  The WiSH
+   protocol layers a simplified WebSocket framing over the HTTP body.
+   WiSH stands for Web in Strict HTTP.  The lower layer protocol
+   providing the HTTP semantics can be HTTP/1.1 [RFC7231], HTTP/2
+   [RFC7540], HTTP/2 + QUIC [QUIC] , or any future protocols.
+   Transport-level functionalities such as compression, multiplexing,
+   session priority, etc. are provided by the lower layer wire protocol
+   [TransportAbstraction].  Unlike HTTP/2, HTTP/1.1 doesn't specify if
+   earlier 2xx responses are allowed [RFC7540].  Therefore when HTTP/1.1
+   is used as the underlying protocol, full duplex communication may be
+   broken if the client, server or any proxy chooses to buffer or reject
+   earlier 2xx responses.  Since proxies may buffer response body,
+   communication over WiSH may experience extra latency compared to
+   WebSocket.  When HTTPS is used, response buffering by proxies is
+   unlikely an issue.
+
+   Features dedicated for WebSockets which can be substituted by lower
+   layer protocols are dropped.  The WiSH protocol doesn't perform the
+   WebSocket handshake.  The fragmentation is only for enabling starting
+   message transmission before determining the final length of the
+   message.  No control messages are inserted between data messages as
+   control signals are exchanged in the lower layer protocols.
+   Relevance of the WebSocket status code and reason is to be studied.
+
+
+
+
+
+Yoshino & Zhu           Expires January 26, 2017                [Page 2]
+
+Internet-Draft                WiSH Protocol                    July 2016
+
+
+   Application-level protocols may use WiSH as the framing protocol to
+   support bi-directional communication over HTTP and for Web and
+   Internet (mobile native) clients.
+
+2.  Conformance Requirements and Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
+   Requirements phrased in the imperative as part of algorithms (such as
+   "strip any leading space characters" or "return false and abort these
+   steps") are to be interpreted with the meaning of the key word
+   ("MUST", "SHOULD", "MAY", etc.) used in introducing the algorithm.
+
+   Conformance requirements phrased as algorithms or specific steps can
+   be implemented in any manner, so long as the end result is
+   equivalent.  In particular, the algorithms defined in this
+   specification are intended to be easy to understand and are not
+   intended to be performant.
+
+3.  WiSH Protocol
+
+   The WiSH protocol transports messages over the message body of the
+   HTTP request message and the HTTP response message using the framing
+   defined in Section 4.
+
+   The Content-Type header value of the underlying HTTP request/response
+   message MUST be "application/x-wish".
+
+4.  Framing
+
+   The WiSH protocol uses the framing defined in [RFC6455] for the
+   WebSocket protocol.
+
+   The opcode field indicates how to interpret the payload data field.
+   The WiSH protocol uses the following opcodes.
+
+   o  %x0 denotes a continuation frame
+
+   o  %x1 denotes a text frame
+
+   o  %x2 denotes a binary frame
+
+   Any value not listed here are reserved.
+
+
+
+
+
+
+Yoshino & Zhu           Expires January 26, 2017                [Page 3]
+
+Internet-Draft                WiSH Protocol                    July 2016
+
+
+   The FIN bit together with the continuation frame opcode, payload len
+   and extended payload length work in the same way as the WebSocket
+   protocol to represent frames and messages.
+
+   RSV1, RSV2 and RSV3 are set to 0.
+
+   The MASK bit is always set to 0 in both server to client and client
+   to server direction as masking is not needed.  Therefore, the
+   masking-key field is never present.
+
+5.  Acknowledgements
+
+   Roberto Peon
+
+6.  References
+
+6.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
+   [RFC6455]  Fette, I. and A. Melnikov, "The WebSocket Protocol", RFC
+              6455, December 2011.
+
+   [RFC7231]  Fielding, R., Ed. and J. Reschke, Ed., "Hypertext Transfer
+              Protocol (HTTP/1.1): Semantics and Content", RFC 7231, DOI
+              10.17487/RFC7231, June 2014,
+              <http://www.rfc-editor.org/info/rfc7231>.
+
+   [RFC7540]  Belshe, M., Peon, R., and M. Thomson, Ed., "Hypertext
+              Transfer Protocol Version 2 (HTTP/2)", RFC 7540, DOI 10
+              .17487/RFC7540, May 2015,
+              <http://www.rfc-editor.org/info/rfc7540>.
+
+6.2.  References
+
+   [SSE]      WHATWG, "HTML Living Standard", July 2016,
+              <https://html.spec.whatwg.org/multipage/comms.html>.
+
+   [BidiwebSurvey]
+              Yoshino, T. and W. Zhu, "Non Request-Response
+              Communication over the Web, and What's Missing", January
+              2014, <https://github.com/bidiweb/bidiweb-semantics/blob/
+              master/SurveyOfProtocolGaps.md>.
+
+   [TransportAbstraction]
+              Zhu, W., "http-transport-abstraction", July 2016,
+              <https://github.com/bidiweb/http-transport-abstraction>.
+
+
+
+Yoshino & Zhu           Expires January 26, 2017                [Page 4]
+
+Internet-Draft                WiSH Protocol                    July 2016
+
+
+   [QUIC]     Hamilton, R., Iyengar, J., Swett, I., and A. Wilk, "QUIC:
+              A UDP-Based Secure and Reliable Transport for HTTP/2",
+              July 2016.
+
+Authors' Addresses
+
+   Takeshi Yoshino
+   Google, Inc.
+
+   Email: tyoshino@google.com
+
+
+   Wenbo Zhu
+   Google, Inc.
+
+   Email: wenboz@google.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Yoshino & Zhu           Expires January 26, 2017                [Page 5]
