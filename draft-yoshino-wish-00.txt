@@ -5,20 +5,21 @@
 Network Working Group                                         T. Yoshino
 Internet-Draft                                                    W. Zhu
 Intended status: Standards Track                            Google, Inc.
-Expires: January 26, 2017                                  July 25, 2016
+Expires: January 2, 2017                                       July 2016
 
 
-                             WiSH Protocol
+ WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire
+                            Protocols (HTTP)
                          draft-yoshino-wish-00
 
 Abstract
 
-   This document defines a protocol named WiSH which supports bi-
-   directional message-based communication over the standard HTTP
-   semantics.  The WiSH protocol layers the WebSocket (compatible)
-   framing over HTTP.  You may want to think about WiSH as a binary and
-   bi-directional alternative to the framing defined for server-sent
-   events [SSE].
+   This document defines a general purpose message framing named WiSH
+   which supports bi-directional message-based communication over byte-
+   stream oriented protocols such as HTTP (in its standard semantics).
+   The WiSH framing is designed to be compatible with WebSocket.  You
+   may want to think about WiSH as a binary and bi-directional
+   alternative to the framing defined for the server-sent events [SSE].
 
 Status of This Memo
 
@@ -35,7 +36,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on January 26, 2017.
+   This Internet-Draft will expire on January 2, 2017.
 
 Copyright Notice
 
@@ -52,10 +53,9 @@ Copyright Notice
 
 
 
-
-Yoshino & Zhu           Expires January 26, 2017                [Page 1]
+Yoshino & Zhu            Expires January 2, 2017                [Page 1]
 
-Internet-Draft                WiSH Protocol                    July 2016
+Internet-DraWiSH: A General Purpose Message Framing over Byte  July 2016
 
 
    the Trust Legal Provisions and are provided without warranty as
@@ -70,53 +70,49 @@ Table of Contents
    5.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   4
    6.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   4
      6.1.  Normative References  . . . . . . . . . . . . . . . . . .   4
-     6.2.  References  . . . . . . . . . . . . . . . . . . . . . . .   4
+     6.2.  References  . . . . . . . . . . . . . . . . . . . . . . .   5
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   5
 
 1.  Introduction
 
-   The WebSocket was proposed to provide client-server bi-directional
-   messaging for the Web natively.  It's been implemented and deployed
-   widely, but there're still missing semantics and functionalities.
-   See [BidiwebSurvey].
+   The WebSocket protocol was proposed to provide client-server bi-
+   directional messaging for the Web natively.  It's been implemented
+   and deployed widely, but there're still missing semantics and
+   functionalities.  See [BidiwebSurvey].
 
-   The WiSH protocol is a protocol for use over the standard HTTP
-   semantics to provide bi-directional messaging semantics.  The WiSH
-   protocol layers a simplified WebSocket framing over the HTTP body.
-   WiSH stands for Web in Strict HTTP.  The lower layer protocol
-   providing the HTTP semantics can be HTTP/1.1 [RFC7231], HTTP/2
-   [RFC7540], HTTP/2 + QUIC [QUIC] , or any future protocols.
-   Transport-level functionalities such as compression, multiplexing,
-   session priority, etc. are provided by the lower layer wire protocol
-   [TransportAbstraction].  Unlike HTTP/2, HTTP/1.1 doesn't specify if
-   earlier 2xx responses are allowed [RFC7540].  Therefore when HTTP/1.1
-   is used as the underlying protocol, full duplex communication may be
-   broken if the client, server or any proxy chooses to buffer or reject
-   earlier 2xx responses.  Since proxies may buffer response body,
-   communication over WiSH may experience extra latency compared to
-   WebSocket.  When HTTPS is used, response buffering by proxies is
-   unlikely an issue.
+   WiSH is purely a message framing format for use over the standard
+   HTTP semantics to provide bi-directional messaging semantics.  WiSH
+   stands for Web in Strict HTTP.  The communication protocol providing
+   the HTTP semantics can be HTTP/1.1 [RFC7231], HTTP/2 [RFC7540],
+   HTTP/2 + QUIC [QUIC] , or any future protocols.  Wire-protocol
+   functionalities such as compression, multiplexing, session priority,
+   etc. are provided by the underlying protocol [TransportAbstraction].
+   Unlike HTTP/2, HTTP/1.1 doesn't specify if earlier 2xx responses are
+   allowed [RFC7540].  Therefore when HTTP/1.1 is used as the underlying
+   protocol, full duplex communication may be broken if the client,
+   server or any proxy chooses to buffer or reject earlier 2xx
+   responses.  Since proxies may buffer response body, communication
+   over WiSH may experience extra latency compared to WebSocket.  When
+   HTTPS is used, response buffering by proxies is less likely an issue.
 
-   Features dedicated for WebSockets which can be substituted by lower
-   layer protocols are dropped.  The WiSH protocol doesn't perform the
-   WebSocket handshake.  The fragmentation is only for enabling starting
-   message transmission before determining the final length of the
-   message.  No control messages are inserted between data messages as
-   control signals are exchanged in the lower layer protocols.
-   Relevance of the WebSocket status code and reason is to be studied.
-
-
-
-
-
-Yoshino & Zhu           Expires January 26, 2017                [Page 2]
-
-Internet-Draft                WiSH Protocol                    July 2016
-
+   Wire-protocol features in WebSockets, such as handshake or control
+   messages, are all dropped.  The WiSH framing respects the semantics
+   of the underlying protocol (as opposed to turning it to a transport
+   protocol).  The concept of fragmentation is retained for enabling
+   starting message transmission before determining the final length of
+   the message.
 
    Application-level protocols may use WiSH as the framing protocol to
    support bi-directional communication over HTTP and for Web and
-   Internet (mobile native) clients.
+   Internet clients.
+
+
+
+
+Yoshino & Zhu            Expires January 2, 2017                [Page 2]
+
+Internet-DraWiSH: A General Purpose Message Framing over Byte  July 2016
+
 
 2.  Conformance Requirements and Terminology
 
@@ -137,22 +133,42 @@ Internet-Draft                WiSH Protocol                    July 2016
 
 3.  WiSH Protocol
 
-   The WiSH protocol transports messages over the message body of the
-   HTTP request message and the HTTP response message using the framing
-   defined in Section 4.
+   WiSH frames messages over an HTTP request or response body using the
+   framing defined in Section 4.
 
    The Content-Type header value of the underlying HTTP request/response
-   message MUST be "application/x-wish".
+   message MUST be "application/x-webstream".
 
 4.  Framing
 
-   The WiSH protocol uses the framing defined in [RFC6455] for the
-   WebSocket protocol.
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-------+-+-------------+-------------------------------+
+   |F|0|0|0|opcode |0|Payload      |Extended payload length        |
+   |I| | | |4 bit  | |length       |16 bit if payload length is 126|
+   |N| | | |       | |7 bit        |64 bit if payload length is 127|
+   +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
+   |                                                               |
+   + - - - - - - - - - - - - - - - +-------------------------------+
+   |                               |Payload Data                   |
+   +-------------------------------+ - - - - - - - - - - - - - - - +
+   |                                                               |
+   +---------------------------------------------------------------+
+
+   WiSH framing is compatible with the framing defined in [RFC6455] for
+   the WebSocket protocol.
 
    The opcode field indicates how to interpret the payload data field.
-   The WiSH protocol uses the following opcodes.
+   WiSH uses the following opcodes.
 
    o  %x0 denotes a continuation frame
+
+
+
+Yoshino & Zhu            Expires January 2, 2017                [Page 3]
+
+Internet-DraWiSH: A General Purpose Message Framing over Byte  July 2016
+
 
    o  %x1 denotes a text frame
 
@@ -160,25 +176,30 @@ Internet-Draft                WiSH Protocol                    July 2016
 
    Any value not listed here are reserved.
 
-
-
-
-
-
-Yoshino & Zhu           Expires January 26, 2017                [Page 3]
-
-Internet-Draft                WiSH Protocol                    July 2016
-
-
    The FIN bit together with the continuation frame opcode, payload len
-   and extended payload length work in the same way as the WebSocket
-   protocol to represent frames and messages.
+   and extended payload length work in the same way as WebSocket to
+   represent frames and messages.  The fragmentation mechanism allows
+   for flushing a part of a large message payload without waiting for
+   the total size of the message is determined.
 
-   RSV1, RSV2 and RSV3 are set to 0.
+   The message type distinction by the opcode field, text and binary, is
+   kept to allow better Web support.  One of possible use cases is to
+   use the text type for exchaning meta data encoded in JSON, etc., and
+   the binary type for exchanging data messages.
 
-   The MASK bit is always set to 0 in both server to client and client
-   to server direction as masking is not needed.  Therefore, the
-   masking-key field is never present.
+   The status code and status reason defined in the WebSocket protocol
+   are dropped.
+
+   The ping and pong control message of the WebSocket protocol are
+   dropped.  If such a feature is needed, it should be provided by
+   underlying protocols.
+
+   The permessage-deflate extension [RFC7692] is defined for the
+   WebSocket protocol to add compression mechanism to it.  No extension
+   mechanism is defined for WiSH.  Compression can be implemented by
+   underlying protocols or in the application layer if needed.  What
+   contents are exchanged and in what encoding they are exchanged over
+   WiSH are to be defined by the application layer.
 
 5.  Acknowledgements
 
@@ -194,6 +215,17 @@ Internet-Draft                WiSH Protocol                    July 2016
    [RFC6455]  Fette, I. and A. Melnikov, "The WebSocket Protocol", RFC
               6455, December 2011.
 
+
+
+
+
+
+
+Yoshino & Zhu            Expires January 2, 2017                [Page 4]
+
+Internet-DraWiSH: A General Purpose Message Framing over Byte  July 2016
+
+
    [RFC7231]  Fielding, R., Ed. and J. Reschke, Ed., "Hypertext Transfer
               Protocol (HTTP/1.1): Semantics and Content", RFC 7231, DOI
               10.17487/RFC7231, June 2014,
@@ -203,6 +235,10 @@ Internet-Draft                WiSH Protocol                    July 2016
               Transfer Protocol Version 2 (HTTP/2)", RFC 7540, DOI 10
               .17487/RFC7540, May 2015,
               <http://www.rfc-editor.org/info/rfc7540>.
+
+   [RFC7692]  Yoshino, T., "Compression Extensions for WebSocket", RFC
+              7692, DOI 10.17487/RFC7692, December 2015,
+              <http://www.rfc-editor.org/info/rfc7692>.
 
 6.2.  References
 
@@ -218,13 +254,6 @@ Internet-Draft                WiSH Protocol                    July 2016
    [TransportAbstraction]
               Zhu, W., "http-transport-abstraction", July 2016,
               <https://github.com/bidiweb/http-transport-abstraction>.
-
-
-
-Yoshino & Zhu           Expires January 26, 2017                [Page 4]
-
-Internet-Draft                WiSH Protocol                    July 2016
-
 
    [QUIC]     Hamilton, R., Iyengar, J., Swett, I., and A. Wilk, "QUIC:
               A UDP-Based Secure and Reliable Transport for HTTP/2",
@@ -248,33 +277,4 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Yoshino & Zhu           Expires January 26, 2017                [Page 5]
+Yoshino & Zhu            Expires January 2, 2017                [Page 5]
