@@ -5,7 +5,7 @@
 Network Working Group                                         T. Yoshino
 Internet-Draft                                                    W. Zhu
 Intended status: Standards Track                            Google, Inc.
-Expires: April 9, 2017                                   October 6, 2016
+Expires: April 23, 2017                                 October 20, 2016
 
 
  WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire
@@ -36,7 +36,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 9, 2017.
+   This Internet-Draft will expire on April 23, 2017.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Yoshino & Zhu             Expires April 9, 2017                 [Page 1]
+Yoshino & Zhu            Expires April 23, 2017                 [Page 1]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -64,36 +64,38 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
-   2.  Conformance Requirements and Terminology  . . . . . . . . . .   3
-   3.  WiSH Protocol . . . . . . . . . . . . . . . . . . . . . . . .   3
-   4.  Framing . . . . . . . . . . . . . . . . . . . . . . . . . . .   3
-   5.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   4
-   6.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   4
-     6.1.  Normative References  . . . . . . . . . . . . . . . . . .   4
-     6.2.  References  . . . . . . . . . . . . . . . . . . . . . . .   5
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   5
+   2.  Background  . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  Conformance Requirements and Terminology  . . . . . . . . . .   4
+   4.  WiSH Protocol . . . . . . . . . . . . . . . . . . . . . . . .   4
+   5.  Framing . . . . . . . . . . . . . . . . . . . . . . . . . . .   4
+   6.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   5
+   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   5
+     7.1.  Normative References  . . . . . . . . . . . . . . . . . .   5
+     7.2.  Non-normative References  . . . . . . . . . . . . . . . .   6
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   6
 
 1.  Introduction
 
-   The WebSocket protocol was proposed to provide client-server bi-
-   directional messaging for the Web natively.  It's been implemented
-   and deployed widely, but there're still missing semantics and
+   The WebSocket protocol was proposed to provide native client-server
+   bi-directional messaging for the Web.  It has been implemented and
+   deployed widely, but there are still missing semantics and
    functionalities.  See [BidiwebSurvey].
 
-   WiSH is purely a message framing format for use over the standard
-   HTTP semantics to provide bi-directional messaging semantics.  WiSH
-   stands for Web in Strict HTTP.  The communication protocol providing
-   the HTTP semantics can be HTTP/1.1 [RFC7231], HTTP/2 [RFC7540],
-   HTTP/2 + QUIC [QUIC], or any future protocols.  Wire-protocol
-   functionalities such as compression, multiplexing, session priority,
-   etc. are provided by the underlying protocol [TransportAbstraction].
-   Unlike HTTP/2, HTTP/1.1 doesn't specify if earlier 2xx responses are
-   allowed [RFC7540].  Therefore when HTTP/1.1 is used as the underlying
-   protocol, full duplex communication may be broken if the client,
+   WiSH is a message framing format for use over the standard HTTP
+   semantics to provide bi-directional messaging semantics.  WiSH stands
+   for Web in Strict HTTP.  The communication protocol providing the
+   HTTP semantics can be HTTP/1.1 [RFC7231], HTTP/2 [RFC7540], HTTP/2 +
+   QUIC [QUIC], or any future protocols.  Wire-protocol functionalities
+   such as compression, multiplexing, session priority, etc. are
+   provided by the underlying protocol [TransportAbstraction].  Unlike
+   HTTP/2, HTTP/1.1 doesn't specify if earlier 2xx responses are allowed
+   [RFC7540].  Therefore when HTTP/1.1 is used as the underlying
+   protocol, full-duplex communication may be broken if the client,
    server or any proxy chooses to buffer or reject earlier 2xx
    responses.  Since proxies may buffer response bodies, communication
    over WiSH may experience extra latency compared to WebSocket.  When
-   HTTPS is used, response buffering by proxies is less likely an issue.
+   HTTPS is used, response buffering by proxies is less likely to
+   happen.
 
    Wire-protocol features in WebSockets, such as handshake or control
    messages, are all dropped.  The WiSH framing respects the semantics
@@ -102,19 +104,73 @@ Table of Contents
    starting message transmission before determining the final length of
    the message.
 
-   Application-level protocols may use WiSH as the framing protocol to
-   support bi-directional communication over HTTP and for Web and
-   Internet clients.
 
 
 
 
-Yoshino & Zhu             Expires April 9, 2017                 [Page 2]
+
+Yoshino & Zhu            Expires April 23, 2017                 [Page 2]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
-2.  Conformance Requirements and Terminology
+   Application-level protocols may use WiSH as the framing protocol to
+   support bi-directional communication over HTTP and for Web and
+   Internet clients.
+
+2.  Background
+
+   There has been several attempts to improve bi-directional message-
+   based communication on the Web.
+
+   The server-sent events [SSE] realized message-based communication in
+   the server-to-client direction, by introducing a new Web API and a
+   special message framing format while using HTTP as the wire protocol.
+   Except for the issue of possible buffering by intermediaries, the
+   server-sent events work well with existing intermediaries and
+   frameworks that support the HTTP protocol.
+
+   The WebSockets introduced both a new Web API and a new wire protocol
+   to realize bi-directional message-based communication.  Because the
+   WebSocket wire protocol is incompatible with HTTP, intermediaries and
+   frameworks have to be upgrade to undersand and support the new
+   protocol.
+
+   In parallel to the development of the WebSockets, the HTTP protocol
+   has been greatly improved with HTTP/2.  There are more improvements
+   upcoming e.g.  QUIC to the HTTP.  Recently, the Web APIs for the HTTP
+   protocol have also been improved.  The XMLHttpRequest is being
+   replaced with the Fetch API [Fetch] which allows for streamed
+   uploading and downloading of the body part by using the Streams API
+   [Streams].  The Streams API also enables implementing data transfer
+   and various data processing e.g. compression/decompression, message
+   framing, in the form of the transform stream.
+
+   It's desirable that furthur evolution of bi-directional message-based
+   communication utilize the HTTP/2 to reduce cost of development and
+   standardization.  Bidi communication should be multiplexed with
+   normal HTTP traffic and should benefit from future transport-level
+   improvements such as QUIC.
+
+   The WiSH idea is based on the above analysis.  Combination of the
+   Fetch API and transform streams enables efficient processing of the
+   WiSH framing.  Use of the HTTP semantics as-is reduces cost and makes
+   the web simpler.  Once the WiSH idea is successfully adopted, binding
+   to the WebSocket API could be introduced as furthur optimization for
+   existing WebSocket users.
+
+
+
+
+
+
+
+Yoshino & Zhu            Expires April 23, 2017                 [Page 3]
+
+Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
+
+
+3.  Conformance Requirements and Terminology
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
@@ -131,15 +187,15 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    specification are intended to be easy to understand and are not
    intended to be performant.
 
-3.  WiSH Protocol
+4.  WiSH Protocol
 
    WiSH frames messages over an HTTP request or response body using the
-   framing defined in Section 4.
+   framing defined in Section 5.
 
    The Content-Type header value of the underlying HTTP request/response
    message MUST be "application/webstream".
 
-4.  Framing
+5.  Framing
 
     0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -165,7 +221,7 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-Yoshino & Zhu             Expires April 9, 2017                 [Page 3]
+Yoshino & Zhu            Expires April 23, 2017                 [Page 4]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -179,13 +235,13 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    The FIN bit together with the continuation frame opcode, payload
    length and extended payload length work in the same way as WebSocket
    to represent frames and messages.  The fragmentation mechanism allows
-   for flushing a part of a large message payload without waiting for
-   the total size of the message to be determined.
+   for flushing part of a large message payload without waiting for the
+   total size of the message to be determined.
 
    The message type distinction by the opcode field (text and binary) is
    kept to allow better Web support.  One of the possible use cases is
    to use the text type for exchaning meta data encoded in JSON, etc.,
-   and the binary type for exchanging data messages.
+   and the binary type for exchanging non-meta data messages.
 
    The status code and status reason defined in the WebSocket protocol
    are dropped.
@@ -201,14 +257,14 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    needed.  What contents are exchanged and in what encoding they are
    exchanged over WiSH are to be defined by the application layer.
 
-5.  Acknowledgements
+6.  Acknowledgements
 
    Thank you to the following people for giving feedback to the
    document: Ben Christensen, Kari Hurtta, Roberto Peon.
 
-6.  References
+7.  References
 
-6.1.  Normative References
+7.1.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, March 1997.
@@ -221,7 +277,7 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-Yoshino & Zhu             Expires April 9, 2017                 [Page 4]
+Yoshino & Zhu            Expires April 23, 2017                 [Page 5]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -240,10 +296,16 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
               7692, DOI 10.17487/RFC7692, December 2015,
               <http://www.rfc-editor.org/info/rfc7692>.
 
-6.2.  References
+7.2.  Non-normative References
 
-   [SSE]      WHATWG, "HTML Living Standard", July 2016,
+   [SSE]      WHATWG, "HTML Living Standard", October 2016,
               <https://html.spec.whatwg.org/multipage/comms.html>.
+
+   [Fetch]    WHATWG, "Fetch Standard", October 2016,
+              <https://fetch.spec.whatwg.org/>.
+
+   [Streams]  WHATWG, "Standard", October 2016,
+              <https://streams.spec.whatwg.org/>.
 
    [BidiwebSurvey]
               Yoshino, T. and W. Zhu, "Non Request-Response
@@ -267,6 +329,15 @@ Authors' Addresses
    Email: tyoshino@google.com
 
 
+
+
+
+
+Yoshino & Zhu            Expires April 23, 2017                 [Page 6]
+
+Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
+
+
    Wenbo Zhu
    Google, Inc.
 
@@ -277,4 +348,45 @@ Authors' Addresses
 
 
 
-Yoshino & Zhu             Expires April 9, 2017                 [Page 5]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Yoshino & Zhu            Expires April 23, 2017                 [Page 7]

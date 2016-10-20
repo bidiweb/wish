@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?rfc notedraftinprogress="yes" ?>
+<?rfc rfcprocack="yes" ?>
+<?rfc symrefs="yes" ?>
+<?rfc toc="yes" ?>
+<rfc
+   category="std"
+   docName="draft-yoshino-wish-00"
+   ipr="trust200902">
+  <front>
+    <title>WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire Protocols (HTTP) </title>
+    <author
+       initials="T.Y."
+       surname="Yoshino"
+       fullname="Takeshi Yoshino">
+      <organization>Google, Inc.</organization>
+      <address>
+        <email>tyoshino@google.com</email>
+      </address>
+    </author>
+    <author
+       initials="W.Z."
+       surname="Zhu"
+       fullname="Wenbo Zhu">
+      <organization>Google, Inc.</organization>
+      <address>
+        <email>wenboz@google.com</email>
+      </address>
+    </author>
+    <date month="October" year="2016"/>
+    <abstract>
+      <t>
+        This document defines a general purpose message framing named WiSH which supports bi-directional message-based communication over byte-stream oriented protocols such as HTTP (in its standard semantics).
+        The WiSH framing is designed to be compatible with WebSocket.
+        You may want to think about WiSH as a binary and bi-directional alternative to the framing defined for the server-sent events <xref target="SSE" />.
+      </t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section title="Introduction">
+      <t>
+        The WebSocket protocol was proposed to provide native client-server bi-directional messaging for the Web.
+        It has been implemented and deployed widely, but there are still missing semantics and functionalities. See <xref target="BidiwebSurvey" />.
+      </t>
+
+      <t>
+        WiSH is a message framing format for use over the standard HTTP semantics to provide bi-directional messaging semantics.
+        WiSH stands for Web in Strict HTTP.
+        The communication protocol providing the HTTP semantics can be HTTP/1.1 <xref target="RFC7231" />, HTTP/2 <xref target="RFC7540" />, HTTP/2 + QUIC <xref target="QUIC" />, or any future protocols.
+        Wire-protocol functionalities such as compression, multiplexing, session priority, etc. are provided by the underlying protocol <xref target="TransportAbstraction" />.
+        Unlike HTTP/2, HTTP/1.1 doesn't specify if earlier 2xx responses are allowed <xref target="RFC7540" />.
+        Therefore when HTTP/1.1 is used as the underlying protocol, full-duplex communication may be broken if the client, server or any proxy chooses to buffer or reject earlier 2xx responses.
+        Since proxies may buffer response bodies, communication over WiSH may experience extra latency compared to WebSocket. When HTTPS is used, response buffering by proxies is less likely to happen.
+      </t>
+
+      <t>
+        Wire-protocol features in WebSockets, such as handshake or control messages, are all dropped. The WiSH framing respects the semantics of the underlying protocol (as opposed to turning it to a transport protocol).
+        The concept of fragmentation is retained for enabling starting message transmission before determining the final length of the message.
+      </t>
+
+      <t>
+        Application-level protocols may use WiSH as the framing protocol to support bi-directional communication over HTTP and for Web and Internet clients.
+      </t>
+    </section>
+
+    <section title="Background">
+      <t>
+        There has been several attempts to improve bi-directional message-based communication on the Web.
+      </t>
+
+      <t>
+        The server-sent events <xref target="SSE" /> realized message-based communication in the server-to-client direction, by introducing a new Web API and a special message framing format while using HTTP as the wire protocol.
+        Except for the issue of possible buffering by intermediaries, the server-sent events work well with existing intermediaries and frameworks that support the HTTP protocol.
+      </t>
+
+      <t>
+        The WebSockets introduced both a new Web API and a new wire protocol to realize bi-directional message-based communication.
+        Because the WebSocket wire protocol is incompatible with HTTP, intermediaries and frameworks have to be upgrade to undersand and support the new protocol.
+      </t>
+
+      <t>
+        In parallel to the development of the WebSockets, the HTTP protocol has been greatly improved with HTTP/2. There are more improvements upcoming e.g. QUIC to the HTTP.
+        Recently, the Web APIs for the HTTP protocol have also been improved.
+        The XMLHttpRequest is being replaced with the Fetch API <xref target="Fetch" /> which allows for streamed uploading and downloading of the body part by using the Streams API <xref target="Streams" />.
+        The Streams API also enables implementing data transfer and various data processing e.g. compression/decompression, message framing, in the form of the transform stream.
+      </t>
+
+      <t>
+        It's desirable that furthur evolution of bi-directional message-based communication utilize the HTTP/2 to reduce cost of development and standardization.
+        Bidi communication should be multiplexed with normal HTTP traffic and should benefit from future transport-level improvements such as QUIC.
+      </t>
+
+      <t>
+      </t>
+
+      <t>
+        The WiSH idea is based on the above analysis.
+        Combination of the Fetch API and transform streams enables efficient processing of the WiSH framing.
+        Use of the HTTP semantics as-is reduces cost and makes the web simpler.
+        Once the WiSH idea is successfully adopted, binding to the WebSocket API could be introduced as furthur optimization for existing WebSocket users.
+      </t>
+    </section>
+
+    <section title="Conformance Requirements and Terminology">
+      <t>
+        The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in <xref target="RFC2119" />.
+      </t>
+
+      <t>
+        Requirements phrased in the imperative as part of algorithms (such as "strip any leading space characters" or "return false and abort these steps") are to be interpreted with the meaning of the key word ("MUST", "SHOULD", "MAY", etc.) used in introducing the algorithm.
+      </t>
+
+      <t>
+        Conformance requirements phrased as algorithms or specific steps can be implemented in any manner, so long as the end result is equivalent.
+        In particular, the algorithms defined in this specification are intended to be easy to understand and are not intended to be performant.
+      </t>
+    </section>
+
+    <section title="WiSH Protocol">
+      <t>
+        WiSH frames messages over an HTTP request or response body using the framing defined in <xref target="framing" />.
+      </t>
+
+      <t>
+        The Content-Type header value of the underlying HTTP request/response message MUST be <spanx style="verb">application/webstream</spanx>.
+      </t>
+    </section>
+
+    <section title="Framing" anchor="framing">
+      <figure>
+        <artwork>
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-------+-+-------------+-------------------------------+
+|F|0|0|0|opcode |0|Payload      |Extended payload length        |
+|I| | | |4 bit  | |length       |16 bit if payload length is 126|
+|N| | | |       | |7 bit        |64 bit if payload length is 127|
++-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
+|                                                               |
++ - - - - - - - - - - - - - - - +-------------------------------+
+|                               |Payload Data                   |
++-------------------------------+ - - - - - - - - - - - - - - - +
+|                                                               |
++---------------------------------------------------------------+
+        </artwork>
+      </figure>
+
+      <t>
+        WiSH framing is compatible with the framing defined in <xref target="RFC6455" /> for the WebSocket protocol.
+      </t>
+
+      <t>
+        The opcode field indicates how to interpret the payload data field.
+        WiSH uses the following opcodes.
+        <list style="symbols">
+          <t>
+            %x0 denotes a continuation frame
+          </t>
+          <t>
+            %x1 denotes a text frame
+          </t>
+          <t>
+            %x2 denotes a binary frame
+          </t>
+        </list>
+        Any values not listed here are reserved.
+      </t>
+
+      <t>
+        The FIN bit together with the continuation frame opcode, payload length and extended payload length work in the same way as WebSocket to represent frames and messages.
+        The fragmentation mechanism allows for flushing part of a large message payload without waiting for the total size of the message to be determined.
+      </t>
+
+      <t>
+        The message type distinction by the opcode field (text and binary) is kept to allow better Web support.
+        One of the possible use cases is to use the text type for exchaning meta data encoded in JSON, etc., and the binary type for exchanging non-meta data messages.
+      </t>
+
+      <t>
+        The status code and status reason defined in the WebSocket protocol are dropped.
+      </t>
+
+      <t>
+        The ping and pong control message of the WebSocket protocol are dropped.
+        If such a feature is needed, it should be provided by underlying protocols.
+      </t>
+
+      <t>
+        The permessage-deflate extension <xref target="RFC7692" /> is defined for the WebSocket protocol, to add a compression mechanism to it.
+        No extension mechanism is defined for WiSH.
+        Compression can be implemented by underlying protocols or in the application layer if needed.
+        What contents are exchanged and in what encoding they are exchanged over WiSH are to be defined by the application layer.
+      </t>
+    </section>
+
+    <section title="Acknowledgements">
+      <t>
+        Thank you to the following people for giving feedback to the document: Ben Christensen, Kari Hurtta, Roberto Peon.
+      </t>
+    </section>
+  </middle>
+
+  <back>
+    <references title="Normative References">
+      <?rfc include="reference.RFC.2119" ?>
+      <?rfc include="reference.RFC.6455" ?>
+      <?rfc include="reference.RFC.7231" ?>
+      <?rfc include="reference.RFC.7540" ?>
+      <?rfc include="reference.RFC.7692" ?>
+    </references>
+
+    <references title="Non-normative References">
+      <reference anchor="SSE" target="https://html.spec.whatwg.org/multipage/comms.html">
+        <front>
+          <title>HTML Living Standard</title>
+          <author>
+            <organization>WHATWG</organization>
+          </author>
+          <date month="October" year="2016" />
+        </front>
+      </reference>
+
+      <reference anchor="Fetch" target="https://fetch.spec.whatwg.org/">
+        <front>
+          <title>Fetch Standard</title>
+          <author>
+            <organization>WHATWG</organization>
+          </author>
+          <date month="October" year="2016" />
+        </front>
+      </reference>
+
+      <reference anchor="Streams" target="https://streams.spec.whatwg.org/">
+        <front>
+          <title> Standard</title>
+          <author>
+            <organization>WHATWG</organization>
+          </author>
+          <date month="October" year="2016" />
+        </front>
+      </reference>
+
+      <reference anchor="BidiwebSurvey" target="https://github.com/bidiweb/bidiweb-semantics/blob/master/SurveyOfProtocolGaps.md">
+        <front>
+          <title>Non Request-Response Communication over the Web, and What's Missing</title>
+          <author initials="T." surname="Yoshino" fullname="Takeshi Yoshino"></author>
+          <author initials="W." surname="Zhu" fullname="Wenbo Zhu"></author>
+          <date month="January" year="2014" />
+        </front>
+      </reference>
+
+      <reference anchor="TransportAbstraction" target="https://github.com/bidiweb/http-transport-abstraction">
+        <front>
+          <title>http-transport-abstraction</title>
+          <author initials="W." surname="Zhu" fullname="Wenbo Zhu"></author>
+          <date month="July" year="2016" />
+        </front>
+      </reference>
+
+      <reference anchor="QUIC">
+        <front>
+          <title>QUIC: A UDP-Based Secure and Reliable Transport for HTTP/2</title>
+          <author initials="R." surname="Hamilton" fullname="Ryan Hamilton"></author>
+          <author initials="J." surname="Iyengar" fullname="Janardhan Iyengar"></author>
+          <author initials="I." surname="Swett" fullname="Ian Swett"></author>
+          <author initials="A." surname="Wilk" fullname="Alyssa Wilk"></author>
+          <date month="July" year="2016" />
+        </front>
+      </reference>
+    </references>
+  </back>
+</rfc>
