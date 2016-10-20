@@ -55,7 +55,7 @@
       </t>
 
       <t>
-        Wire-protocol features in WebSockets, such as handshake or control messages, are all dropped. The WiSH framing respects the semantics of the underlying protocol (as opposed to turning it to a transport protocol).
+        Wire-protocol features of WebSocket, such as handshake or control messages, are all dropped. The WiSH framing respects the semantics of the underlying protocol (as opposed to turning it to a transport protocol).
         The concept of fragmentation is retained for enabling starting message transmission before determining the final length of the message.
       </t>
 
@@ -71,33 +71,32 @@
 
       <t>
         The server-sent events <xref target="SSE" /> realized message-based communication in the server-to-client direction, by introducing a new Web API and a special message framing format while using HTTP as the wire protocol.
-        Except for the issue of possible buffering by intermediaries, the server-sent events work well with existing intermediaries and frameworks that support the HTTP protocol.
+        Except for the issue of possible buffering by intermediaries, the server-sent events work well with existing intermediaries and frameworks that support HTTP.
       </t>
 
       <t>
-        The WebSockets introduced both a new Web API and a new wire protocol to realize bi-directional message-based communication.
-        Because the WebSocket wire protocol is incompatible with HTTP, intermediaries and frameworks have to be upgrade to undersand and support the new protocol.
+        WebSocket introduced both a new Web API and a new wire protocol to realize bi-directional message-based communication.
+        Because the wire protocol is incompatible with HTTP, intermediaries and frameworks have to be upgraded to understand the protocol to support WebSocket.
       </t>
 
       <t>
-        In parallel to the development of the WebSockets, the HTTP protocol has been greatly improved with HTTP/2. There are more improvements upcoming e.g. QUIC to the HTTP.
-        Recently, the Web APIs for the HTTP protocol have also been improved.
-        The XMLHttpRequest is being replaced with the Fetch API <xref target="Fetch" /> which allows for streamed uploading and downloading of the body part by using the Streams API <xref target="Streams" />.
-        The Streams API also enables implementing data transfer and various data processing e.g. compression/decompression, message framing, in the form of the transform stream.
+        In parallel to the development of WebSocket, HTTP has been greatly improved with HTTP/2.
+        There are more improvements upcoming e.g. QUIC to the HTTP.
+        At the same time, the Web APIs for HTTP have also been improved.
+        The XMLHttpRequest is being replaced with the Fetch API <xref target="Fetch" /> which allows for streamed uploading and downloading of the body part of HTTP messages by using the Streams API <xref target="Streams" />.
+        The Streams API also enables implementing data transfer and various data processing (e.g. compression/decompression, message framing) in the form of the transform stream.
+        The transform stream mechanism is designed to allow for optimizing transfer and processing by offloading some part of them from the JavaScript world.
       </t>
 
       <t>
-        It's desirable that furthur evolution of bi-directional message-based communication utilize the HTTP/2 to reduce cost of development and standardization.
+        It's desirable that furthur evolution of bi-directional message-based communication utilize HTTP/2 to reduce cost of development and standardization.
         Bidi communication should be multiplexed with normal HTTP traffic and should benefit from future transport-level improvements such as QUIC.
-      </t>
-
-      <t>
       </t>
 
       <t>
         The WiSH idea is based on the above analysis.
         Combination of the Fetch API and transform streams enables efficient processing of the WiSH framing.
-        Use of the HTTP semantics as-is reduces cost and makes the web simpler.
+        Use of the HTTP semantics as-is reduces cost and makes the Web simpler.
         Once the WiSH idea is successfully adopted, binding to the WebSocket API could be introduced as furthur optimization for existing WebSocket users.
       </t>
     </section>

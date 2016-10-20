@@ -97,7 +97,7 @@ Table of Contents
    HTTPS is used, response buffering by proxies is less likely to
    happen.
 
-   Wire-protocol features in WebSockets, such as handshake or control
+   Wire-protocol features of WebSocket, such as handshake or control
    messages, are all dropped.  The WiSH framing respects the semantics
    of the underlying protocol (as opposed to turning it to a transport
    protocol).  The concept of fragmentation is retained for enabling
@@ -128,26 +128,27 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    special message framing format while using HTTP as the wire protocol.
    Except for the issue of possible buffering by intermediaries, the
    server-sent events work well with existing intermediaries and
-   frameworks that support the HTTP protocol.
+   frameworks that support HTTP.
 
-   The WebSockets introduced both a new Web API and a new wire protocol
-   to realize bi-directional message-based communication.  Because the
-   WebSocket wire protocol is incompatible with HTTP, intermediaries and
-   frameworks have to be upgrade to undersand and support the new
-   protocol.
+   WebSocket introduced both a new Web API and a new wire protocol to
+   realize bi-directional message-based communication.  Because the wire
+   protocol is incompatible with HTTP, intermediaries and frameworks
+   have to be upgraded to understand the protocol to support WebSocket.
 
-   In parallel to the development of the WebSockets, the HTTP protocol
-   has been greatly improved with HTTP/2.  There are more improvements
-   upcoming e.g.  QUIC to the HTTP.  Recently, the Web APIs for the HTTP
-   protocol have also been improved.  The XMLHttpRequest is being
-   replaced with the Fetch API [Fetch] which allows for streamed
-   uploading and downloading of the body part by using the Streams API
-   [Streams].  The Streams API also enables implementing data transfer
-   and various data processing e.g. compression/decompression, message
-   framing, in the form of the transform stream.
+   In parallel to the development of WebSocket, HTTP has been greatly
+   improved with HTTP/2.  There are more improvements upcoming e.g.
+   QUIC to the HTTP.  At the same time, the Web APIs for HTTP have also
+   been improved.  The XMLHttpRequest is being replaced with the Fetch
+   API [Fetch] which allows for streamed uploading and downloading of
+   the body part of HTTP messages by using the Streams API [Streams].
+   The Streams API also enables implementing data transfer and various
+   data processing (e.g. compression/decompression, message framing) in
+   the form of the transform stream.  The transform stream mechanism is
+   designed to allow for optimizing transfer and processing by
+   offloading some part of them from the JavaScript world.
 
    It's desirable that furthur evolution of bi-directional message-based
-   communication utilize the HTTP/2 to reduce cost of development and
+   communication utilize HTTP/2 to reduce cost of development and
    standardization.  Bidi communication should be multiplexed with
    normal HTTP traffic and should benefit from future transport-level
    improvements such as QUIC.
@@ -155,10 +156,9 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    The WiSH idea is based on the above analysis.  Combination of the
    Fetch API and transform streams enables efficient processing of the
    WiSH framing.  Use of the HTTP semantics as-is reduces cost and makes
-   the web simpler.  Once the WiSH idea is successfully adopted, binding
+   the Web simpler.  Once the WiSH idea is successfully adopted, binding
    to the WebSocket API could be introduced as furthur optimization for
    existing WebSocket users.
-
 
 
 
@@ -267,13 +267,13 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 7.1.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
-              Requirement Levels", BCP 14, RFC 2119, March 1997.
+              Requirement Levels", BCP 14, RFC 2119, DOI 10.17487/
+              RFC2119, March 1997,
+              <http://www.rfc-editor.org/info/rfc2119>.
 
    [RFC6455]  Fette, I. and A. Melnikov, "The WebSocket Protocol", RFC
-              6455, December 2011.
-
-
-
+              6455, DOI 10.17487/RFC6455, December 2011,
+              <http://www.rfc-editor.org/info/rfc6455>.
 
 
 
