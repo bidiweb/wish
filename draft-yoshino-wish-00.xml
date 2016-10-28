@@ -5,7 +5,7 @@
 <?rfc toc="yes" ?>
 <rfc
    category="std"
-   docName="draft-yoshino-wish-00"
+   docName="draft-yoshino-wish-02"
    ipr="trust200902">
   <front>
     <title>WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire Protocols (HTTP) </title>
@@ -89,7 +89,7 @@
       </t>
 
       <t>
-        It's desirable that furthur evolution of bi-directional message-based communication utilize HTTP/2 to reduce cost of development and standardization.
+        It's desirable that further evolution of bi-directional message-based communication utilize HTTP/2 to reduce cost of development and standardization.
         Bidi communication should be multiplexed with normal HTTP traffic and should benefit from future transport-level improvements such as QUIC.
       </t>
 
@@ -97,7 +97,7 @@
         The WiSH idea is based on the above analysis.
         Combination of the Fetch API and transform streams enables efficient processing of the WiSH framing.
         Use of the HTTP semantics as-is reduces cost and makes the Web simpler.
-        Once the WiSH idea is successfully adopted, binding to the WebSocket API could be introduced as furthur optimization for existing WebSocket users.
+        Once the WiSH idea is successfully adopted, binding to the WebSocket API could be introduced as further optimization for existing WebSocket users.
       </t>
     </section>
 
@@ -122,7 +122,56 @@
       </t>
 
       <t>
-        The Content-Type header value of the underlying HTTP request/response message MUST be <spanx style="verb">application/webstream</spanx>.
+        The Content-Type header value of the underlying HTTP request/response message MUST be <spanx style="verb">application/web-stream</spanx>.
+      </t>
+    </section>
+
+    <section title="Subprotocol Negotiation">
+      <t>
+        When layered over HTTP, WiSH optionally negotiates the subprotocol, i.e. the protocol layered over WiSH, by using the Accept header and Content-Type header of the underlying HTTP.
+        RFC 6455 negotiated the subprotocol by exchanging the Sec-WebSocket-Protocol header.
+        WiSH lists the offered subprotocols in the Accept header as follows:
+      </t>
+
+      <figure>
+        <artwork>
+    Accept: application/web-stream;protocol=foo;q=1,
+        application/web-stream;protocol=bar;q=0.5
+        </artwork>
+      </figure>
+
+      <t>
+        Following the "application/web-stream" media type, a parameter named "protocol" can be specified with the subprotocol name as its value.
+        Multiple subprotocols are offered by listing multiple application/web-stream media type with the protocol parameter with different values.
+        The server chooses one subprotcol from the offered ones and notifies the chosen subprotocol by including the Content-Type header with the WiSH media type with the subprotocol as its value as follows:
+      </t>
+
+      <figure>
+        <artwork>
+    Content-Type: application/web-stream;protocol=foo
+        </artwork>
+      </figure>
+
+      <t>
+        Another possible way to implement the subprotocol negotiation is to specify "+web-stream" as a standard media type suffix <xref target="RFC6839" />.
+        For example, "application/foo+web-stream" means that WiSH is in use and the subprotocol is "foo".
+      </t>
+
+      <t>
+        Whether or not it's worth allowing for asymmetric subprotocols, i.e. using different subprotocol for server-to-client and client-to-server, is to be discussed.
+        This includes WiSH and non-WiSH media type combinations.
+      </t>
+    </section>
+
+    <section title="Method">
+      <t>
+        When layered over HTTP, the method of an HTTP request MUST be either "GET" or "POST".
+        When the method is "GET", the client MUST NOT include the HTTP request message body, meaning server-to-client direction only messaging like the server-sent event but using WiSH.
+        When the method is "POST", the client MAY include the HTTP request message body, meaning bi-directional messaging.
+      </t>
+
+      <t>
+        Whether or not WiSH with the "PUT" and "PATCH" method should be allowed is to be discussed.
       </t>
     </section>
 
@@ -173,7 +222,15 @@
 
       <t>
         The message type distinction by the opcode field (text and binary) is kept to allow better Web support.
-        One of the possible use cases is to use the text type for exchaning meta data encoded in JSON, etc., and the binary type for exchanging non-meta data messages.
+        One of the possible use cases is to use the text type for exchanging meta data encoded in JSON, etc., and the binary type for exchanging non-meta data messages.
+      </t>
+
+      <t>
+        In RFC 6455, endpoints were required to _Fail the WebSocket Connection_ when they find that the byte stream is not a valid UTF-8 stream.
+        The contents of text messages of WiSH also MUST be a valid UTF-8 stream.
+        But WiSH endpoints are not required to do anything when they see an invalid UTF-8 stream.
+        This provides more flexibility to users about when and how to validate a UTF-8 stream.
+        For example, servers can choose to check UTF-8 validness only once inside JSON parser if the WiSH server framework they use doesn't perform UTF-8 validness checking.
       </t>
 
       <t>
@@ -195,7 +252,7 @@
 
     <section title="Acknowledgements">
       <t>
-        Thank you to the following people for giving feedback to the document: Ben Christensen, Kari Hurtta, Roberto Peon.
+        Thank you to the following people for giving feedback to the document: Ben Christensen, Kari Hurtta, Loïc Hoguin, Roberto Peon.
       </t>
     </section>
   </middle>
@@ -207,6 +264,7 @@
       <?rfc include="reference.RFC.7231" ?>
       <?rfc include="reference.RFC.7540" ?>
       <?rfc include="reference.RFC.7692" ?>
+      <?rfc include="reference.RFC.6839" ?>
     </references>
 
     <references title="Non-normative References">

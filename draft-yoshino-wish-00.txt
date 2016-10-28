@@ -5,12 +5,12 @@
 Network Working Group                                         T. Yoshino
 Internet-Draft                                                    W. Zhu
 Intended status: Standards Track                            Google, Inc.
-Expires: April 23, 2017                                 October 20, 2016
+Expires: May 1, 2017                                    October 28, 2016
 
 
  WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire
                             Protocols (HTTP)
-                         draft-yoshino-wish-00
+                         draft-yoshino-wish-02
 
 Abstract
 
@@ -36,7 +36,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 23, 2017.
+   This Internet-Draft will expire on May 1, 2017.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Yoshino & Zhu            Expires April 23, 2017                 [Page 1]
+Yoshino & Zhu              Expires May 1, 2017                  [Page 1]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -67,12 +67,14 @@ Table of Contents
    2.  Background  . . . . . . . . . . . . . . . . . . . . . . . . .   3
    3.  Conformance Requirements and Terminology  . . . . . . . . . .   4
    4.  WiSH Protocol . . . . . . . . . . . . . . . . . . . . . . . .   4
-   5.  Framing . . . . . . . . . . . . . . . . . . . . . . . . . . .   4
-   6.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   5
-   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   5
-     7.1.  Normative References  . . . . . . . . . . . . . . . . . .   5
-     7.2.  Non-normative References  . . . . . . . . . . . . . . . .   6
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   6
+   5.  Subprotocol Negotiation . . . . . . . . . . . . . . . . . . .   4
+   6.  Method  . . . . . . . . . . . . . . . . . . . . . . . . . . .   5
+   7.  Framing . . . . . . . . . . . . . . . . . . . . . . . . . . .   5
+   8.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   6
+   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
+     9.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
+     9.2.  Non-normative References  . . . . . . . . . . . . . . . .   7
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   8
 
 1.  Introduction
 
@@ -107,9 +109,7 @@ Table of Contents
 
 
 
-
-
-Yoshino & Zhu            Expires April 23, 2017                 [Page 2]
+Yoshino & Zhu              Expires May 1, 2017                  [Page 2]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -147,7 +147,7 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    designed to allow for optimizing transfer and processing by
    offloading some part of them from the JavaScript world.
 
-   It's desirable that furthur evolution of bi-directional message-based
+   It's desirable that further evolution of bi-directional message-based
    communication utilize HTTP/2 to reduce cost of development and
    standardization.  Bidi communication should be multiplexed with
    normal HTTP traffic and should benefit from future transport-level
@@ -157,7 +157,7 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    Fetch API and transform streams enables efficient processing of the
    WiSH framing.  Use of the HTTP semantics as-is reduces cost and makes
    the Web simpler.  Once the WiSH idea is successfully adopted, binding
-   to the WebSocket API could be introduced as furthur optimization for
+   to the WebSocket API could be introduced as further optimization for
    existing WebSocket users.
 
 
@@ -165,7 +165,7 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-Yoshino & Zhu            Expires April 23, 2017                 [Page 3]
+Yoshino & Zhu              Expires May 1, 2017                  [Page 3]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -190,12 +190,65 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 4.  WiSH Protocol
 
    WiSH frames messages over an HTTP request or response body using the
-   framing defined in Section 5.
+   framing defined in Section 7.
 
    The Content-Type header value of the underlying HTTP request/response
-   message MUST be "application/webstream".
+   message MUST be "application/web-stream".
 
-5.  Framing
+5.  Subprotocol Negotiation
+
+   When layered over HTTP, WiSH optionally negotiates the subprotocol,
+   i.e. the protocol layered over WiSH, by using the Accept header and
+   Content-Type header of the underlying HTTP.  RFC 6455 negotiated the
+   subprotocol by exchanging the Sec-WebSocket-Protocol header.  WiSH
+   lists the offered subprotocols in the Accept header as follows:
+
+       Accept: application/web-stream;protocol=foo;q=1,
+           application/web-stream;protocol=bar;q=0.5
+
+   Following the "application/web-stream" media type, a parameter named
+   "protocol" can be specified with the subprotocol name as its value.
+   Multiple subprotocols are offered by listing multiple application/
+   web-stream media type with the protocol parameter with different
+   values.  The server chooses one subprotcol from the offered ones and
+   notifies the chosen subprotocol by including the Content-Type header
+   with the WiSH media type with the subprotocol as its value as
+   follows:
+
+       Content-Type: application/web-stream;protocol=foo
+
+
+
+
+
+Yoshino & Zhu              Expires May 1, 2017                  [Page 4]
+
+Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
+
+
+   Another possible way to implement the subprotocol negotiation is to
+   specify "+web-stream" as a standard media type suffix [RFC6839].  For
+   example, "application/foo+web-stream" means that WiSH is in use and
+   the subprotocol is "foo".
+
+   Whether or not it's worth allowing for asymmetric subprotocols, i.e.
+   using different subprotocol for server-to-client and client-to-
+   server, is to be discussed.  This includes WiSH and non-WiSH media
+   type combinations.
+
+6.  Method
+
+   When layered over HTTP, the method of an HTTP request MUST be either
+   "GET" or "POST".  When the method is "GET", the client MUST NOT
+   include the HTTP request message body, meaning server-to-client
+   direction only messaging like the server-sent event but using WiSH.
+   When the method is "POST", the client MAY include the HTTP request
+   message body, meaning bi-directional messaging.
+
+   Whether or not WiSH with the "PUT" and "PATCH" method should be
+   allowed is to be discussed.
+
+7.  Framing
 
     0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -219,14 +272,15 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
    o  %x0 denotes a continuation frame
 
+   o  %x1 denotes a text frame
 
 
-Yoshino & Zhu            Expires April 23, 2017                 [Page 4]
+
+
+Yoshino & Zhu              Expires May 1, 2017                  [Page 5]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
-
-   o  %x1 denotes a text frame
 
    o  %x2 denotes a binary frame
 
@@ -240,8 +294,18 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
    The message type distinction by the opcode field (text and binary) is
    kept to allow better Web support.  One of the possible use cases is
-   to use the text type for exchaning meta data encoded in JSON, etc.,
+   to use the text type for exchanging meta data encoded in JSON, etc.,
    and the binary type for exchanging non-meta data messages.
+
+   In RFC 6455, endpoints were required to _Fail the WebSocket
+   Connection_ when they find that the byte stream is not a valid UTF-8
+   stream.  The contents of text messages of WiSH also MUST be a valid
+   UTF-8 stream.  But WiSH endpoints are not required to do anything
+   when they see an invalid UTF-8 stream.  This provides more
+   flexibility to users about when and how to validate a UTF-8 stream.
+   For example, servers can choose to check UTF-8 validness only once
+   inside JSON parser if the WiSH server framework they use doesn't
+   perform UTF-8 validness checking.
 
    The status code and status reason defined in the WebSocket protocol
    are dropped.
@@ -257,14 +321,26 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    needed.  What contents are exchanged and in what encoding they are
    exchanged over WiSH are to be defined by the application layer.
 
-6.  Acknowledgements
+8.  Acknowledgements
 
    Thank you to the following people for giving feedback to the
-   document: Ben Christensen, Kari Hurtta, Roberto Peon.
+   document: Ben Christensen, Kari Hurtta, Loic Hoguin, Roberto Peon.
 
-7.  References
 
-7.1.  Normative References
+
+
+
+
+
+
+Yoshino & Zhu              Expires May 1, 2017                  [Page 6]
+
+Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
+
+
+9.  References
+
+9.1.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, DOI 10.17487/
@@ -274,13 +350,6 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    [RFC6455]  Fette, I. and A. Melnikov, "The WebSocket Protocol", RFC
               6455, DOI 10.17487/RFC6455, December 2011,
               <http://www.rfc-editor.org/info/rfc6455>.
-
-
-
-Yoshino & Zhu            Expires April 23, 2017                 [Page 5]
-
-Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
-
 
    [RFC7231]  Fielding, R., Ed. and J. Reschke, Ed., "Hypertext Transfer
               Protocol (HTTP/1.1): Semantics and Content", RFC 7231, DOI
@@ -296,7 +365,12 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
               7692, DOI 10.17487/RFC7692, December 2015,
               <http://www.rfc-editor.org/info/rfc7692>.
 
-7.2.  Non-normative References
+   [RFC6839]  Hansen, T. and A. Melnikov, "Additional Media Type
+              Structured Syntax Suffixes", RFC 6839, DOI 10.17487/
+              RFC6839, January 2013,
+              <http://www.rfc-editor.org/info/rfc6839>.
+
+9.2.  Non-normative References
 
    [SSE]      WHATWG, "HTML Living Standard", October 2016,
               <https://html.spec.whatwg.org/multipage/comms.html>.
@@ -313,6 +387,13 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
               2014, <https://github.com/bidiweb/bidiweb-semantics/blob/
               master/SurveyOfProtocolGaps.md>.
 
+
+
+Yoshino & Zhu              Expires May 1, 2017                  [Page 7]
+
+Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
+
+
    [TransportAbstraction]
               Zhu, W., "http-transport-abstraction", July 2016,
               <https://github.com/bidiweb/http-transport-abstraction>.
@@ -327,15 +408,6 @@ Authors' Addresses
    Google, Inc.
 
    Email: tyoshino@google.com
-
-
-
-
-
-
-Yoshino & Zhu            Expires April 23, 2017                 [Page 6]
-
-Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
    Wenbo Zhu
@@ -373,20 +445,4 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Yoshino & Zhu            Expires April 23, 2017                 [Page 7]
+Yoshino & Zhu              Expires May 1, 2017                  [Page 8]
