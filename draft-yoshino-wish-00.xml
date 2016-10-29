@@ -126,55 +126,6 @@
       </t>
     </section>
 
-    <section title="Subprotocol Negotiation">
-      <t>
-        When layered over HTTP, WiSH optionally negotiates the subprotocol, i.e. the protocol layered over WiSH, by using the Accept header and Content-Type header of the underlying HTTP.
-        RFC 6455 negotiated the subprotocol by exchanging the Sec-WebSocket-Protocol header.
-        WiSH lists the offered subprotocols in the Accept header as follows:
-      </t>
-
-      <figure>
-        <artwork>
-    Accept: application/web-stream;protocol=foo;q=1,
-        application/web-stream;protocol=bar;q=0.5
-        </artwork>
-      </figure>
-
-      <t>
-        Following the "application/web-stream" media type, a parameter named "protocol" can be specified with the subprotocol name as its value.
-        Multiple subprotocols are offered by listing multiple application/web-stream media type with the protocol parameter with different values.
-        The server chooses one subprotcol from the offered ones and notifies the chosen subprotocol by including the Content-Type header with the WiSH media type with the subprotocol as its value as follows:
-      </t>
-
-      <figure>
-        <artwork>
-    Content-Type: application/web-stream;protocol=foo
-        </artwork>
-      </figure>
-
-      <t>
-        Another possible way to implement the subprotocol negotiation is to specify "+web-stream" as a standard media type suffix <xref target="RFC6839" />.
-        For example, "application/foo+web-stream" means that WiSH is in use and the subprotocol is "foo".
-      </t>
-
-      <t>
-        Whether or not it's worth allowing for asymmetric subprotocols, i.e. using different subprotocol for server-to-client and client-to-server, is to be discussed.
-        This includes WiSH and non-WiSH media type combinations.
-      </t>
-    </section>
-
-    <section title="Method">
-      <t>
-        When layered over HTTP, the method of an HTTP request MUST be either "GET" or "POST".
-        When the method is "GET", the client MUST NOT include the HTTP request message body, meaning server-to-client direction only messaging like the server-sent event but using WiSH.
-        When the method is "POST", the client MAY include the HTTP request message body, meaning bi-directional messaging.
-      </t>
-
-      <t>
-        Whether or not WiSH with the "PUT" and "PATCH" method should be allowed is to be discussed.
-      </t>
-    </section>
-
     <section title="Framing" anchor="framing">
       <figure>
         <artwork>
@@ -226,14 +177,6 @@
       </t>
 
       <t>
-        In RFC 6455, endpoints were required to _Fail the WebSocket Connection_ when they find that the byte stream is not a valid UTF-8 stream.
-        The contents of text messages of WiSH also MUST be a valid UTF-8 stream.
-        But WiSH endpoints are not required to do anything when they see an invalid UTF-8 stream.
-        This provides more flexibility to users about when and how to validate a UTF-8 stream.
-        For example, servers can choose to check UTF-8 validness only once inside JSON parser if the WiSH server framework they use doesn't perform UTF-8 validness checking.
-      </t>
-
-      <t>
         The status code and status reason defined in the WebSocket protocol are dropped.
       </t>
 
@@ -250,6 +193,64 @@
       </t>
     </section>
 
+    <section title="Using WiSH over HTTP" anchor="http">
+      <t>
+        Standard HTTP (REST) semantics should be followed, especially the choice of the HTTP method.
+        Some HTTP semantics may not be applicable, e.g. Cache-Control, when the body is streamed.
+        However, such limitation is not specific to WiSH.
+      </t>
+    </section>
+
+    <section title="WebSocket Compatibility">
+      <t>
+        In this section, we discuss how to bridge WiSH and WebSocket (API and protocol).
+      </t>
+
+      <section title="Subprotocol Negotiation">
+        <t>
+          When layered over HTTP, WiSH optionally negotiates the subprotocol, i.e. the protocol layered over WiSH, by using the Accept header and Content-Type header of the underlying HTTP.
+          RFC 6455 negotiated the subprotocol by exchanging the Sec-WebSocket-Protocol header.
+          WiSH lists the offered subprotocols in the Accept header as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Accept: application/web-stream; protocol=foo; q=1,
+        application/web-stream; protocol=bar; q=0.5
+          </artwork>
+        </figure>
+
+        <t>
+          Following the "application/web-stream" media type, a parameter named "protocol" can be specified with the subprotocol name as its value.
+          Multiple subprotocols are offered by listing multiple application/web-stream media type with the protocol parameter with different values.
+          The server chooses one subprotocol from the offered ones and notifies the chosen subprotocol by including the Content-Type header with the WiSH media type with the subprotocol as its value as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Content-Type: application/web-stream; protocol=foo
+          </artwork>
+        </figure>
+
+        <t>
+          WiSH does not forbid use of asymmetric subprotocols as different values can be used for the Content-Type header in the HTTP request and HTTP response (see <xref target="http" />).
+          This includes WiSH and non-WiSH media type combinations.
+          However, symmetric subprotocols MUST be used where compatibility with WebSocket matters.
+          A client MAY use the WiSH media type without the protocol parameter in the Content-Type header of the HTTP request to leave the subprotocol not determined, and start communication using the subprotocol chosen by the server once the HTTP response is received.
+        </t>
+      </section>
+
+      <section title="Valid UTF-8 Requirement">
+        <t>
+          In RFC 6455, endpoints were required to _Fail the WebSocket Connection_ when they find that the byte stream is not a valid UTF-8 stream.
+          The contents of text messages of WiSH also MUST be a valid UTF-8 stream.
+          However, WiSH endpoints are not required to do anything when they see an invalid UTF-8 stream.
+          This provides more flexibility to users about when and how to validate a UTF-8 stream.
+          For example, servers can choose to check UTF-8 validness only once inside JSON parser if the WiSH server framework they use doesn't perform UTF-8 validness checking.
+        </t>
+      </section>
+    </section>
+
     <section title="Acknowledgements">
       <t>
         Thank you to the following people for giving feedback to the document: Ben Christensen, Kari Hurtta, Loïc Hoguin, Roberto Peon.
@@ -264,7 +265,6 @@
       <?rfc include="reference.RFC.7231" ?>
       <?rfc include="reference.RFC.7540" ?>
       <?rfc include="reference.RFC.7692" ?>
-      <?rfc include="reference.RFC.6839" ?>
     </references>
 
     <references title="Non-normative References">
