@@ -5,7 +5,7 @@
 Network Working Group                                         T. Yoshino
 Internet-Draft                                                    W. Zhu
 Intended status: Standards Track                            Google, Inc.
-Expires: May 2, 2017                                    October 29, 2016
+Expires: May 3, 2017                                    October 30, 2016
 
 
  WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire
@@ -36,7 +36,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on May 2, 2017.
+   This Internet-Draft will expire on May 3, 2017.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Yoshino & Zhu              Expires May 2, 2017                  [Page 1]
+Yoshino & Zhu              Expires May 3, 2017                  [Page 1]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -72,7 +72,7 @@ Table of Contents
    7.  WebSocket Compatibility . . . . . . . . . . . . . . . . . . .   5
      7.1.  Subprotocol Negotiation . . . . . . . . . . . . . . . . .   5
      7.2.  Valid UTF-8 Requirement . . . . . . . . . . . . . . . . .   6
-   8.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   6
+   8.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   7
    9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
      9.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
      9.2.  Non-normative References  . . . . . . . . . . . . . . . .   7
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Yoshino & Zhu              Expires May 2, 2017                  [Page 2]
+Yoshino & Zhu              Expires May 3, 2017                  [Page 2]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -165,7 +165,7 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-Yoshino & Zhu              Expires May 2, 2017                  [Page 3]
+Yoshino & Zhu              Expires May 3, 2017                  [Page 3]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -192,8 +192,8 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    WiSH frames messages over an HTTP request or response body using the
    framing defined in Section 5.
 
-   The Content-Type header value of the underlying HTTP request/response
-   message MUST be "application/web-stream".
+   The "Content-Type" header value of the underlying HTTP request/
+   response message MUST be "application/web-stream".
 
 5.  Framing
 
@@ -221,7 +221,7 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-Yoshino & Zhu              Expires May 2, 2017                  [Page 4]
+Yoshino & Zhu              Expires May 3, 2017                  [Page 4]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -261,82 +261,87 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
    Standard HTTP (REST) semantics should be followed, especially the
    choice of the HTTP method.  Some HTTP semantics may not be
-   applicable, e.g.  Cache-Control, when the body is streamed.  However,
-   such limitation is not specific to WiSH.
+   applicable, e.g. the "Cache-Control" header, when the body is
+   streamed.  However, such limitation is not specific to WiSH.
 
 7.  WebSocket Compatibility
 
-   In this section, we discuss how to bridge WiSH and WebSocket (API and
-   protocol).
+   In this section, we discuss how to bridge WiSH and WebSocket.
 
 7.1.  Subprotocol Negotiation
 
-   When layered over HTTP, WiSH optionally negotiates the subprotocol,
-   i.e. the protocol layered over WiSH, by using the Accept header and
-   Content-Type header of the underlying HTTP.  RFC 6455 negotiated the
+   When layered over HTTP, a client and server MAY choose to negotiate a
+   subprotocol (in the WebSocket term) to use by using the standard HTTP
+   "Accept" and "Content-Type" headers.  In order to be compatible with
+   RFC6455, a client MAY list offered subprotocols as follows:
 
 
 
-Yoshino & Zhu              Expires May 2, 2017                  [Page 5]
+Yoshino & Zhu              Expires May 3, 2017                  [Page 5]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
-
-   subprotocol by exchanging the Sec-WebSocket-Protocol header.  WiSH
-   lists the offered subprotocols in the Accept header as follows:
 
        Accept: application/web-stream; protocol=foo; q=1,
            application/web-stream; protocol=bar; q=0.5
 
    Following the "application/web-stream" media type, a parameter named
-   "protocol" can be specified with the subprotocol name as its value.
-   Multiple subprotocols are offered by listing multiple application/
-   web-stream media type with the protocol parameter with different
-   values.  The server chooses one subprotocol from the offered ones and
-   notifies the chosen subprotocol by including the Content-Type header
-   with the WiSH media type with the subprotocol as its value as
-   follows:
+   "protocol" is specified with the subprotocol name as its value.  A
+   client offers multiple subprotocols by listing multiple "application/
+   web-stream" media type with the "protocol" parameter with different
+   values.
+
+   The client MAY indicate that the media type of the request body is
+   WiSH by using the "Content-Type" header as follows:
+
+       Content-Type: application/web-stream
+
+   Where compatibility with WebSocket matters, symmetric subprotocols
+   MUST be used.  When multiple subprotocols are offered, a client MUST
+   NOT specify the "protocol" parameter because it's not determined
+   which subprotocol will be chosen by the server until the negotiation
+   is done.  When a single subprotocol is offered, a client MAY specify
+   the "protocol" parameter which is the same as the one specified in
+   the "Accept" header.
+
+   The server chooses one subprotocol from the offered ones and notifies
+   the chosen subprotocol with the "Content-Type" header as follows:
 
        Content-Type: application/web-stream; protocol=foo
 
-   WiSH does not forbid use of asymmetric subprotocols as different
-   values can be used for the Content-Type header in the HTTP request
-   and HTTP response (see Section 6).  This includes WiSH and non-WiSH
-   media type combinations.  However, symmetric subprotocols MUST be
-   used where compatibility with WebSocket matters.  A client MAY use
-   the WiSH media type without the protocol parameter in the Content-
-   Type header of the HTTP request to leave the subprotocol not
-   determined, and start communication using the subprotocol chosen by
-   the server once the HTTP response is received.
+   The client SHOULD NOT start streaming any data (with the request
+   body) before the client receives all the response headers from the
+   server, which concludes the negotiation process.
+
+   Where compatibility with WebSocket doesn't matter, the "Content-Type"
+   header value MAY differ between the HTTP request and HTTP response
+   (see Section 6).  This includes a combination of WiSH and non-WiSH
+   media type.
 
 7.2.  Valid UTF-8 Requirement
 
-   In RFC 6455, endpoints were required to _Fail the WebSocket
-   Connection_ when they find that the byte stream is not a valid UTF-8
-   stream.  The contents of text messages of WiSH also MUST be a valid
-   UTF-8 stream.  However, WiSH endpoints are not required to do
-   anything when they see an invalid UTF-8 stream.  This provides more
-   flexibility to users about when and how to validate a UTF-8 stream.
-   For example, servers can choose to check UTF-8 validness only once
-   inside JSON parser if the WiSH server framework they use doesn't
-   perform UTF-8 validness checking.
+   In RFC6455, endpoints are required to _Fail the WebSocket Connection_
+   when they find that the byte stream in a text message is not a valid
+   UTF-8 stream.  To conform to the requirement, RFC6455 server
+   frameworks check UTF-8 validness.  The contents of text messages of
+   WiSH also MUST be a valid UTF-8 stream.  However, WiSH endpoints are
+   not required to check UTF-8 validness.  This provides more
+   flexibility to server development.  For example, a server may choose
+   to check UTF-8 validness inside a JSON parser.
+
+
+
+
+
+Yoshino & Zhu              Expires May 3, 2017                  [Page 6]
+
+Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
+
 
 8.  Acknowledgements
 
    Thank you to the following people for giving feedback to the
    document: Ben Christensen, Kari Hurtta, Loic Hoguin, Roberto Peon.
-
-
-
-
-
-
-
-
-Yoshino & Zhu              Expires May 2, 2017                  [Page 6]
-
-Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
-
 
 9.  References
 
@@ -382,17 +387,16 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
               2014, <https://github.com/bidiweb/bidiweb-semantics/blob/
               master/SurveyOfProtocolGaps.md>.
 
-   [TransportAbstraction]
-              Zhu, W., "http-transport-abstraction", July 2016,
-              <https://github.com/bidiweb/http-transport-abstraction>.
 
 
-
-
-Yoshino & Zhu              Expires May 2, 2017                  [Page 7]
+Yoshino & Zhu              Expires May 3, 2017                  [Page 7]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
+
+   [TransportAbstraction]
+              Zhu, W., "http-transport-abstraction", July 2016,
+              <https://github.com/bidiweb/http-transport-abstraction>.
 
    [QUIC]     Hamilton, R., Iyengar, J., Swett, I., and A. Wilk, "QUIC:
               A UDP-Based Secure and Reliable Transport for HTTP/2",
@@ -441,8 +445,4 @@ Authors' Addresses
 
 
 
-
-
-
-
-Yoshino & Zhu              Expires May 2, 2017                  [Page 8]
+Yoshino & Zhu              Expires May 3, 2017                  [Page 8]

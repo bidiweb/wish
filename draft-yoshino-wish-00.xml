@@ -122,7 +122,7 @@
       </t>
 
       <t>
-        The Content-Type header value of the underlying HTTP request/response message MUST be <spanx style="verb">application/web-stream</spanx>.
+        The "Content-Type" header value of the underlying HTTP request/response message MUST be <spanx style="verb">application/web-stream</spanx>.
       </t>
     </section>
 
@@ -196,21 +196,20 @@
     <section title="Using WiSH over HTTP" anchor="http">
       <t>
         Standard HTTP (REST) semantics should be followed, especially the choice of the HTTP method.
-        Some HTTP semantics may not be applicable, e.g. Cache-Control, when the body is streamed.
+        Some HTTP semantics may not be applicable, e.g. the "Cache-Control" header, when the body is streamed.
         However, such limitation is not specific to WiSH.
       </t>
     </section>
 
     <section title="WebSocket Compatibility">
       <t>
-        In this section, we discuss how to bridge WiSH and WebSocket (API and protocol).
+        In this section, we discuss how to bridge WiSH and WebSocket.
       </t>
 
       <section title="Subprotocol Negotiation">
         <t>
-          When layered over HTTP, WiSH optionally negotiates the subprotocol, i.e. the protocol layered over WiSH, by using the Accept header and Content-Type header of the underlying HTTP.
-          RFC 6455 negotiated the subprotocol by exchanging the Sec-WebSocket-Protocol header.
-          WiSH lists the offered subprotocols in the Accept header as follows:
+          When layered over HTTP, a client and server MAY choose to negotiate a subprotocol (in the WebSocket term) to use by using the standard HTTP "Accept" and "Content-Type" headers.
+          In order to be compatible with RFC6455, a client MAY list offered subprotocols as follows:
         </t>
 
         <figure>
@@ -221,9 +220,28 @@
         </figure>
 
         <t>
-          Following the "application/web-stream" media type, a parameter named "protocol" can be specified with the subprotocol name as its value.
-          Multiple subprotocols are offered by listing multiple application/web-stream media type with the protocol parameter with different values.
-          The server chooses one subprotocol from the offered ones and notifies the chosen subprotocol by including the Content-Type header with the WiSH media type with the subprotocol as its value as follows:
+          Following the "application/web-stream" media type, a parameter named "protocol" is specified with the subprotocol name as its value.
+          A client offers multiple subprotocols by listing multiple "application/web-stream" media type with the "protocol" parameter with different values.
+        </t>
+
+        <t>
+          The client MAY indicate that the media type of the request body is WiSH by using the "Content-Type" header as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Content-Type: application/web-stream
+          </artwork>
+        </figure>
+
+        <t>
+          Where compatibility with WebSocket matters, symmetric subprotocols MUST be used.
+          When multiple subprotocols are offered, a client MUST NOT specify the "protocol" parameter because it's not determined which subprotocol will be chosen by the server until the negotiation is done.
+          When a single subprotocol is offered, a client MAY specify the "protocol" parameter which is the same as the one specified in the "Accept" header.
+        </t>
+
+        <t>
+          The server chooses one subprotocol from the offered ones and notifies the chosen subprotocol with the "Content-Type" header as follows:
         </t>
 
         <figure>
@@ -233,20 +251,23 @@
         </figure>
 
         <t>
-          WiSH does not forbid use of asymmetric subprotocols as different values can be used for the Content-Type header in the HTTP request and HTTP response (see <xref target="http" />).
-          This includes WiSH and non-WiSH media type combinations.
-          However, symmetric subprotocols MUST be used where compatibility with WebSocket matters.
-          A client MAY use the WiSH media type without the protocol parameter in the Content-Type header of the HTTP request to leave the subprotocol not determined, and start communication using the subprotocol chosen by the server once the HTTP response is received.
+          The client SHOULD NOT start streaming any data (with the request body) before the client receives all the response headers from the server, which concludes the negotiation process.
+        </t>
+
+        <t>
+          Where compatibility with WebSocket doesn't matter, the "Content-Type" header value MAY differ between the HTTP request and HTTP response (see <xref target="http" />).
+          This includes a combination of WiSH and non-WiSH media type.
         </t>
       </section>
 
       <section title="Valid UTF-8 Requirement">
         <t>
-          In RFC 6455, endpoints were required to _Fail the WebSocket Connection_ when they find that the byte stream is not a valid UTF-8 stream.
+          In RFC6455, endpoints are required to _Fail the WebSocket Connection_ when they find that the byte stream in a text message is not a valid UTF-8 stream.
+          To conform to the requirement, RFC6455 server frameworks check UTF-8 validness.
           The contents of text messages of WiSH also MUST be a valid UTF-8 stream.
-          However, WiSH endpoints are not required to do anything when they see an invalid UTF-8 stream.
-          This provides more flexibility to users about when and how to validate a UTF-8 stream.
-          For example, servers can choose to check UTF-8 validness only once inside JSON parser if the WiSH server framework they use doesn't perform UTF-8 validness checking.
+          However, WiSH endpoints are not required to check UTF-8 validness.
+          This provides more flexibility to server development.
+          For example, a server may choose to check UTF-8 validness inside a JSON parser.
         </t>
       </section>
     </section>
