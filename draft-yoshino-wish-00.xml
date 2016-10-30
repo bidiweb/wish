@@ -122,7 +122,7 @@
       </t>
 
       <t>
-        The "Content-Type" header value of the underlying HTTP request/response message MUST be <spanx style="verb">application/web-stream</spanx>.
+        The <spanx style="verb">Content-Type</spanx> header value of the underlying HTTP request/response message MUST be <spanx style="verb">application/web-stream</spanx>.
       </t>
     </section>
 
@@ -196,7 +196,7 @@
     <section title="Using WiSH over HTTP" anchor="http">
       <t>
         Standard HTTP (REST) semantics should be followed, especially the choice of the HTTP method.
-        Some HTTP semantics may not be applicable, e.g. the "Cache-Control" header, when the body is streamed.
+        Some HTTP semantics may not be applicable, e.g. the <spanx style="verb">Cache-Control</spanx> header, when the body is streamed.
         However, such limitation is not specific to WiSH.
       </t>
     </section>
@@ -208,7 +208,7 @@
 
       <section title="Subprotocol Negotiation">
         <t>
-          When layered over HTTP, a client and server MAY choose to negotiate a subprotocol (in the WebSocket term) to use by using the standard HTTP "Accept" and "Content-Type" headers.
+          When layered over HTTP, a client and server MAY choose to negotiate a subprotocol (in the WebSocket term) to use by using the standard HTTP <spanx style="verb">Accept</spanx> and <spanx style="verb">Content-Type</spanx> headers.
           In order to be compatible with RFC6455, a client MAY list offered subprotocols as follows:
         </t>
 
@@ -220,12 +220,12 @@
         </figure>
 
         <t>
-          Following the "application/web-stream" media type, a parameter named "protocol" is specified with the subprotocol name as its value.
-          A client offers multiple subprotocols by listing multiple "application/web-stream" media type with the "protocol" parameter with different values.
+          Following the <spanx style="verb">application/web-stream</spanx> media type, a parameter named <spanx style="verb">protocol</spanx> is specified with the subprotocol name as its value.
+          A client offers multiple subprotocols by listing multiple <spanx style="verb">application/web-stream</spanx> media type with the <spanx style="verb">protocol</spanx> parameter with different values.
         </t>
 
         <t>
-          The client MAY indicate that the media type of the request body is WiSH by using the "Content-Type" header as follows:
+          The client MAY indicate that the media type of the request body is WiSH by using the <spanx style="verb">Content-Type</spanx> header as follows:
         </t>
 
         <figure>
@@ -236,12 +236,12 @@
 
         <t>
           Where compatibility with WebSocket matters, symmetric subprotocols MUST be used.
-          When multiple subprotocols are offered, a client MUST NOT specify the "protocol" parameter because it's not determined which subprotocol will be chosen by the server until the negotiation is done.
-          When a single subprotocol is offered, a client MAY specify the "protocol" parameter which is the same as the one specified in the "Accept" header.
+          When multiple subprotocols are offered, a client MUST NOT specify the <spanx style="verb">protocol</spanx> parameter because it's not determined which subprotocol will be chosen by the server until the negotiation is done.
+          When a single subprotocol is offered, a client MAY specify the <spanx style="verb">protocol</spanx> parameter which is the same as the one specified in the <spanx style="verb">Accept</spanx> header.
         </t>
 
         <t>
-          The server chooses one subprotocol from the offered ones and notifies the chosen subprotocol with the "Content-Type" header as follows:
+          The server chooses one subprotocol from the offered ones and notifies the chosen subprotocol with the <spanx style="verb">Content-Type</spanx> header as follows:
         </t>
 
         <figure>
@@ -255,7 +255,7 @@
         </t>
 
         <t>
-          Where compatibility with WebSocket doesn't matter, the "Content-Type" header value MAY differ between the HTTP request and HTTP response (see <xref target="http" />).
+          Where compatibility with WebSocket doesn't matter, the <spanx style="verb">Content-Type</spanx> header value MAY differ between the HTTP request and HTTP response (see <xref target="http" />).
           This includes a combination of WiSH and non-WiSH media type.
         </t>
       </section>
@@ -274,7 +274,7 @@
 
     <section title="Acknowledgements">
       <t>
-        Thank you to the following people for giving feedback to the document: Ben Christensen, Kari Hurtta, Loïc Hoguin, Roberto Peon.
+        Thank you to the following people for giving feedback to the document: Ben Christensen, Costin Manolache, Kari Hurtta, Loïc Hoguin, Roberto Peon, Van Catha.
       </t>
     </section>
   </middle>
