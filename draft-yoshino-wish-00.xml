@@ -5,7 +5,7 @@
 <?rfc toc="yes" ?>
 <rfc
    category="std"
-   docName="draft-yoshino-wish-00"
+   docName="draft-yoshino-wish-02"
    ipr="trust200902">
   <front>
     <title>WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire Protocols (HTTP) </title>
@@ -89,7 +89,7 @@
       </t>
 
       <t>
-        It's desirable that furthur evolution of bi-directional message-based communication utilize HTTP/2 to reduce cost of development and standardization.
+        It's desirable that further evolution of bi-directional message-based communication utilize HTTP/2 to reduce cost of development and standardization.
         Bidi communication should be multiplexed with normal HTTP traffic and should benefit from future transport-level improvements such as QUIC.
       </t>
 
@@ -97,7 +97,7 @@
         The WiSH idea is based on the above analysis.
         Combination of the Fetch API and transform streams enables efficient processing of the WiSH framing.
         Use of the HTTP semantics as-is reduces cost and makes the Web simpler.
-        Once the WiSH idea is successfully adopted, binding to the WebSocket API could be introduced as furthur optimization for existing WebSocket users.
+        Once the WiSH idea is successfully adopted, binding to the WebSocket API could be introduced as further optimization for existing WebSocket users.
       </t>
     </section>
 
@@ -122,7 +122,7 @@
       </t>
 
       <t>
-        The Content-Type header value of the underlying HTTP request/response message MUST be <spanx style="verb">application/webstream</spanx>.
+        The <spanx style="verb">Content-Type</spanx> header value of the underlying HTTP request/response message MUST be <spanx style="verb">application/web-stream</spanx>.
       </t>
     </section>
 
@@ -173,7 +173,7 @@
 
       <t>
         The message type distinction by the opcode field (text and binary) is kept to allow better Web support.
-        One of the possible use cases is to use the text type for exchaning meta data encoded in JSON, etc., and the binary type for exchanging non-meta data messages.
+        One of the possible use cases is to use the text type for exchanging meta data encoded in JSON, etc., and the binary type for exchanging non-meta data messages.
       </t>
 
       <t>
@@ -193,9 +193,88 @@
       </t>
     </section>
 
+    <section title="Using WiSH over HTTP" anchor="http">
+      <t>
+        Standard HTTP (REST) semantics should be followed, especially the choice of the HTTP method.
+        Some HTTP semantics may not be applicable, e.g. the <spanx style="verb">Cache-Control</spanx> header, when the body is streamed.
+        However, such limitation is not specific to WiSH.
+      </t>
+    </section>
+
+    <section title="WebSocket Compatibility">
+      <t>
+        In this section, we discuss how to bridge WiSH and WebSocket.
+      </t>
+
+      <section title="Subprotocol Negotiation">
+        <t>
+          When layered over HTTP, a client and server MAY choose to negotiate a subprotocol (in the WebSocket term) to use by using the standard HTTP <spanx style="verb">Accept</spanx> and <spanx style="verb">Content-Type</spanx> headers.
+          In order to be compatible with RFC6455, a client MAY list offered subprotocols as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Accept: application/web-stream; protocol=foo; q=1,
+        application/web-stream; protocol=bar; q=0.5
+          </artwork>
+        </figure>
+
+        <t>
+          Following the <spanx style="verb">application/web-stream</spanx> media type, a parameter named <spanx style="verb">protocol</spanx> is specified with the subprotocol name as its value.
+          A client offers multiple subprotocols by listing multiple <spanx style="verb">application/web-stream</spanx> media type with the <spanx style="verb">protocol</spanx> parameter with different values.
+        </t>
+
+        <t>
+          The client MAY indicate that the media type of the request body is WiSH by using the <spanx style="verb">Content-Type</spanx> header as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Content-Type: application/web-stream
+          </artwork>
+        </figure>
+
+        <t>
+          Where compatibility with WebSocket matters, symmetric subprotocols MUST be used.
+          When multiple subprotocols are offered, a client MUST NOT specify the <spanx style="verb">protocol</spanx> parameter because it's not determined which subprotocol will be chosen by the server until the negotiation is done.
+          When a single subprotocol is offered, a client MAY specify the <spanx style="verb">protocol</spanx> parameter which is the same as the one specified in the <spanx style="verb">Accept</spanx> header.
+        </t>
+
+        <t>
+          The server chooses one subprotocol from the offered ones and notifies the chosen subprotocol with the <spanx style="verb">Content-Type</spanx> header as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Content-Type: application/web-stream; protocol=foo
+          </artwork>
+        </figure>
+
+        <t>
+          The client SHOULD NOT start streaming any data (with the request body) before the client receives all the response headers from the server, which concludes the negotiation process.
+        </t>
+
+        <t>
+          Where compatibility with WebSocket doesn't matter, the <spanx style="verb">Content-Type</spanx> header value MAY differ between the HTTP request and HTTP response (see <xref target="http" />).
+          This includes a combination of WiSH and non-WiSH media type.
+        </t>
+      </section>
+
+      <section title="Valid UTF-8 Requirement">
+        <t>
+          In RFC6455, endpoints are required to _Fail the WebSocket Connection_ when they find that the byte stream in a text message is not a valid UTF-8 stream.
+          To conform to the requirement, RFC6455 server frameworks check UTF-8 validness.
+          The contents of text messages of WiSH also MUST be a valid UTF-8 stream.
+          However, WiSH endpoints are not required to check UTF-8 validness.
+          This provides more flexibility to server development.
+          For example, a server may choose to check UTF-8 validness inside a JSON parser.
+        </t>
+      </section>
+    </section>
+
     <section title="Acknowledgements">
       <t>
-        Thank you to the following people for giving feedback to the document: Ben Christensen, Kari Hurtta, Roberto Peon.
+        Thank you to the following people for giving feedback to the document: Ben Christensen, Costin Manolache, Kari Hurtta, Loïc Hoguin, Roberto Peon, Van Catha.
       </t>
     </section>
   </middle>
