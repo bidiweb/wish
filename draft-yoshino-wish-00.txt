@@ -341,7 +341,8 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 8.  Acknowledgements
 
    Thank you to the following people for giving feedback to the
-   document: Ben Christensen, Kari Hurtta, Loic Hoguin, Roberto Peon.
+   document: Ben Christensen, Costin Manolache, Kari Hurtta, Loic
+   Hoguin, Roberto Peon, Van Catha.
 
 9.  References
 
@@ -381,11 +382,10 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    [Streams]  WHATWG, "Standard", October 2016,
               <https://streams.spec.whatwg.org/>.
 
-   [BidiwebSurvey]
-              Yoshino, T. and W. Zhu, "Non Request-Response
-              Communication over the Web, and What's Missing", January
-              2014, <https://github.com/bidiweb/bidiweb-semantics/blob/
-              master/SurveyOfProtocolGaps.md>.
+
+
+
+
 
 
 
@@ -393,6 +393,12 @@ Yoshino & Zhu              Expires May 3, 2017                  [Page 7]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
+
+   [BidiwebSurvey]
+              Yoshino, T. and W. Zhu, "Non Request-Response
+              Communication over the Web, and What's Missing", January
+              2014, <https://github.com/bidiweb/bidiweb-semantics/blob/
+              master/SurveyOfProtocolGaps.md>.
 
    [TransportAbstraction]
               Zhu, W., "http-transport-abstraction", July 2016,
@@ -414,12 +420,6 @@ Authors' Addresses
    Google, Inc.
 
    Email: wenboz@google.com
-
-
-
-
-
-
 
 
 
