@@ -5,12 +5,12 @@
 Network Working Group                                         T. Yoshino
 Internet-Draft                                                    W. Zhu
 Intended status: Standards Track                            Google, Inc.
-Expires: May 3, 2017                                    October 30, 2016
+Expires: May 4, 2017                                    October 31, 2016
 
 
  WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire
                             Protocols (HTTP)
-                         draft-yoshino-wish-02
+                         draft-yoshino-wish-01
 
 Abstract
 
@@ -36,7 +36,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on May 3, 2017.
+   This Internet-Draft will expire on May 4, 2017.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Yoshino & Zhu              Expires May 3, 2017                  [Page 1]
+Yoshino & Zhu              Expires May 4, 2017                  [Page 1]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Yoshino & Zhu              Expires May 3, 2017                  [Page 2]
+Yoshino & Zhu              Expires May 4, 2017                  [Page 2]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -165,7 +165,7 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-Yoshino & Zhu              Expires May 3, 2017                  [Page 3]
+Yoshino & Zhu              Expires May 4, 2017                  [Page 3]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -221,7 +221,7 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-Yoshino & Zhu              Expires May 3, 2017                  [Page 4]
+Yoshino & Zhu              Expires May 4, 2017                  [Page 4]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -277,7 +277,7 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-Yoshino & Zhu              Expires May 3, 2017                  [Page 5]
+Yoshino & Zhu              Expires May 4, 2017                  [Page 5]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -333,7 +333,7 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-Yoshino & Zhu              Expires May 3, 2017                  [Page 6]
+Yoshino & Zhu              Expires May 4, 2017                  [Page 6]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -389,7 +389,7 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-Yoshino & Zhu              Expires May 3, 2017                  [Page 7]
+Yoshino & Zhu              Expires May 4, 2017                  [Page 7]
 
 Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
@@ -445,4 +445,4 @@ Authors' Addresses
 
 
 
-Yoshino & Zhu              Expires May 3, 2017                  [Page 8]
+Yoshino & Zhu              Expires May 4, 2017                  [Page 8]
