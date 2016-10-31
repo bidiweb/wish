@@ -240,8 +240,8 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
    The message type distinction by the opcode field (text and binary) is
    kept to allow better Web support.  One of the possible use cases is
-   to use the text type for exchanging meta data encoded in JSON, etc.,
-   and the binary type for exchanging non-meta data messages.
+   to use the text type for exchanging metadata encoded in JSON, etc.,
+   and the binary type for exchanging non-metadata messages.
 
    The status code and status reason defined in the WebSocket protocol
    are dropped.
