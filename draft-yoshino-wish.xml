@@ -172,10 +172,10 @@
       </t>
 
       <t>
-        The CMP bit is used when a compression is in use.
+        The CMP bit indicates whether the message is compressed.
+        The CMP bit of the first frame MUST be set to 1 when compression is enabled for the message.
         Otherwise, it MUST be set to 0.
-        It indicates whether the message is compressed.
-        An endpoint can choose not to compress a message with incompressible contents and send the message with the CMP bit set to 0.
+        The CMP bit of non-first frames MUST be always set to 0.
       </t>
 
       <t>
@@ -292,8 +292,6 @@
           Each element in the header value consists of the identifier of the compression method followed by parameters configuring the method.
           The <spanx style="verb">web-stream-deflate</spanx> compression method in the example shows how the compression algorithm used for the <spanx style="verb">permessage-deflate</spanx> can be configured for the example.
           This example includes the <spanx style="verb">client_max_window_bits</spanx> for WebSocket compatibility which indicates whether or not the client supports the <spanx style="verb">client_max_window_bits</spanx> parameter.
-          This information is not about the content coding of the HTTP response body.
-          To be discussed.
         </t>
 
         <t>

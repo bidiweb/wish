@@ -238,10 +238,10 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    for flushing part of a large message payload without waiting for the
    total size of the message to be determined.
 
-   The CMP bit is used when a compression is in use.  Otherwise, it MUST
-   be set to 0.  It indicates whether the message is compressed.  An
-   endpoint can choose not to compress a message with incompressible
-   contents and send the message with the CMP bit set to 0.
+   The CMP bit indicates whether the message is compressed.  The CMP bit
+   of the first frame MUST be set to 1 when compression is enabled for
+   the message.  Otherwise, it MUST be set to 0.  The CMP bit of non-
+   first frames MUST be always set to 0.
 
    The message type distinction by the opcode field (text and binary) is
    kept to allow better Web support.  One of the possible use cases is
@@ -358,8 +358,7 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    configured for the example.  This example includes the
    "client_max_window_bits" for WebSocket compatibility which indicates
    whether or not the client supports the "client_max_window_bits"
-   parameter.  This information is not about the content coding of the
-   HTTP response body.  To be discussed.
+   parameter.
 
    The client MAY indicate use of the compression method for the HTTP
    request body by using the "Content-Encoding" header as follows:
@@ -386,6 +385,7 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    UTF-8 stream.  To conform to the requirement, RFC6455 server
    frameworks check UTF-8 validness.  The contents of text messages of
    WiSH also MUST be a valid UTF-8 stream.  However, WiSH endpoints are
+   not required to check UTF-8 validness.  This provides more
 
 
 
@@ -394,7 +394,6 @@ Yoshino & Zhu          Expires September 25, 2017               [Page 7]
 Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
-   not required to check UTF-8 validness.  This provides more
    flexibility to server development.  For example, a server may choose
    to check UTF-8 validness inside a JSON parser.
 
@@ -441,6 +440,7 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
    [Streams]  WHATWG, "Standard", October 2016,
               <https://streams.spec.whatwg.org/>.
+
 
 
 
