@@ -5,12 +5,12 @@
 Network Working Group                                         T. Yoshino
 Internet-Draft                                                    W. Zhu
 Intended status: Standards Track                            Google, Inc.
-Expires: May 4, 2017                                    October 31, 2016
+Expires: September 25, 2017                               March 24, 2017
 
 
  WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire
                             Protocols (HTTP)
-                         draft-yoshino-wish-01
+                         draft-yoshino-wish-02
 
 Abstract
 
@@ -36,11 +36,11 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on May 4, 2017.
+   This Internet-Draft will expire on September 25, 2017.
 
 Copyright Notice
 
-   Copyright (c) 2016 IETF Trust and the persons identified as the
+   Copyright (c) 2017 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Yoshino & Zhu              Expires May 4, 2017                  [Page 1]
+Yoshino & Zhu          Expires September 25, 2017               [Page 1]
 
-Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
+Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
    the Trust Legal Provisions and are provided without warranty as
@@ -69,14 +69,15 @@ Table of Contents
    4.  WiSH Protocol . . . . . . . . . . . . . . . . . . . . . . . .   4
    5.  Framing . . . . . . . . . . . . . . . . . . . . . . . . . . .   4
    6.  Using WiSH over HTTP  . . . . . . . . . . . . . . . . . . . .   5
-   7.  WebSocket Compatibility . . . . . . . . . . . . . . . . . . .   5
-     7.1.  Subprotocol Negotiation . . . . . . . . . . . . . . . . .   5
-     7.2.  Valid UTF-8 Requirement . . . . . . . . . . . . . . . . .   6
-   8.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   7
-   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   7
-     9.1.  Normative References  . . . . . . . . . . . . . . . . . .   7
-     9.2.  Non-normative References  . . . . . . . . . . . . . . . .   7
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   8
+   7.  Content Negotiation and WebSocket Compatibility Consideration   5
+     7.1.  Subprotocol Negotiation . . . . . . . . . . . . . . . . .   6
+     7.2.  Compression Negotiation . . . . . . . . . . . . . . . . .   7
+     7.3.  Valid UTF-8 Requirement . . . . . . . . . . . . . . . . .   7
+   8.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   8
+   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   8
+     9.1.  Normative References  . . . . . . . . . . . . . . . . . .   8
+     9.2.  Non-normative References  . . . . . . . . . . . . . . . .   8
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   9
 
 1.  Introduction
 
@@ -108,10 +109,9 @@ Table of Contents
 
 
 
-
-Yoshino & Zhu              Expires May 4, 2017                  [Page 2]
+Yoshino & Zhu          Expires September 25, 2017               [Page 2]
 
-Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
+Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
    starting message transmission before determining the final length of
@@ -165,9 +165,9 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-Yoshino & Zhu              Expires May 4, 2017                  [Page 3]
+Yoshino & Zhu          Expires September 25, 2017               [Page 3]
 
-Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
+Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
 3.  Conformance Requirements and Terminology
@@ -200,9 +200,9 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
     0                   1                   2                   3
     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
    +-+-+-+-+-------+-+-------------+-------------------------------+
-   |F|0|0|0|opcode |0|Payload      |Extended payload length        |
-   |I| | | |4 bit  | |length       |16 bit if payload length is 126|
-   |N| | | |       | |7 bit        |64 bit if payload length is 127|
+   |F|C|0|0|opcode |0|Payload      |Extended payload length        |
+   |I|M| | |4 bit  | |length       |16 bit if payload length is 126|
+   |N|P| | |       | |7 bit        |64 bit if payload length is 127|
    +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
    |                                                               |
    + - - - - - - - - - - - - - - - +-------------------------------+
@@ -221,9 +221,9 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-Yoshino & Zhu              Expires May 4, 2017                  [Page 4]
+Yoshino & Zhu          Expires September 25, 2017               [Page 4]
 
-Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
+Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
    o  %x1 denotes a text frame
@@ -237,6 +237,11 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    to represent frames and messages.  The fragmentation mechanism allows
    for flushing part of a large message payload without waiting for the
    total size of the message to be determined.
+
+   The CMP bit indicates whether the message is compressed.  The CMP bit
+   of the first frame MUST be set to 1 when compression is enabled for
+   the message.  Otherwise, it MUST be set to 0.  The CMP bit of non-
+   first frames MUST be always set to 0.
 
    The message type distinction by the opcode field (text and binary) is
    kept to allow better Web support.  One of the possible use cases is
@@ -264,9 +269,22 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    applicable, e.g. the "Cache-Control" header, when the body is
    streamed.  However, such limitation is not specific to WiSH.
 
-7.  WebSocket Compatibility
+7.  Content Negotiation and WebSocket Compatibility Consideration
 
    In this section, we discuss how to bridge WiSH and WebSocket.
+
+
+
+
+
+Yoshino & Zhu          Expires September 25, 2017               [Page 5]
+
+Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
+
+
+   The JavaScript binding and wire protocol handshake with WebSocket
+   port is future work.  Current thoughts are documented at
+   [BidiwebBinding].
 
 7.1.  Subprotocol Negotiation
 
@@ -274,13 +292,6 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    subprotocol (in the WebSocket term) to use by using the standard HTTP
    "Accept" and "Content-Type" headers.  In order to be compatible with
    RFC6455, a client MAY list offered subprotocols as follows:
-
-
-
-Yoshino & Zhu              Expires May 4, 2017                  [Page 5]
-
-Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
-
 
        Accept: application/web-stream; protocol=foo; q=1,
            application/web-stream; protocol=bar; q=0.5
@@ -318,7 +329,56 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    (see Section 6).  This includes a combination of WiSH and non-WiSH
    media type.
 
-7.2.  Valid UTF-8 Requirement
+
+
+
+
+Yoshino & Zhu          Expires September 25, 2017               [Page 6]
+
+Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
+
+
+7.2.  Compression Negotiation
+
+   When layered over HTTP, a client and server MAY choose to negotiate a
+   compression to use by using the standard HTTP "Accept-Encoding" and
+   "Content-Encoding" headers.  A client MAY list offered compression
+   methods as follows:
+
+       Accept-Encoding:
+           web-stream-deflate;
+           client_max_window_bits; server_max_window_bits=10, q=1,
+           web-stream-deflate;
+           client_max_window_bits; server_max_window_bits; q=0.5
+
+   Each element in the header value consists of the identifier of the
+   compression method followed by parameters configuring the method.
+   The "web-stream-deflate" compression method in the example shows how
+   the compression algorithm used for the "permessage-deflate" can be
+   configured for the example.  This example includes the
+   "client_max_window_bits" for WebSocket compatibility which indicates
+   whether or not the client supports the "client_max_window_bits"
+   parameter.
+
+   The client MAY indicate use of the compression method for the HTTP
+   request body by using the "Content-Encoding" header as follows:
+
+       Content-Encoding: web-stream-deflate
+
+   The server chooses one compression method from the offered ones and
+   notifies the chosen compression method with the "Content-Encoding"
+   header as follows:
+
+       Content-Encoding: web-stream-deflate
+
+   The server MAY also choose not to include the "Content-Encoding"
+   header to indicate that it rejects use of any compression method.
+
+   The client SHOULD NOT start streaming any data (with the request
+   body) before the client receives all the response headers from the
+   server, which concludes the negotiation process.
+
+7.3.  Valid UTF-8 Requirement
 
    In RFC6455, endpoints are required to _Fail the WebSocket Connection_
    when they find that the byte stream in a text message is not a valid
@@ -326,17 +386,16 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
    frameworks check UTF-8 validness.  The contents of text messages of
    WiSH also MUST be a valid UTF-8 stream.  However, WiSH endpoints are
    not required to check UTF-8 validness.  This provides more
+
+
+
+Yoshino & Zhu          Expires September 25, 2017               [Page 7]
+
+Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
+
+
    flexibility to server development.  For example, a server may choose
    to check UTF-8 validness inside a JSON parser.
-
-
-
-
-
-Yoshino & Zhu              Expires May 4, 2017                  [Page 6]
-
-Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
-
 
 8.  Acknowledgements
 
@@ -386,12 +445,9 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
 
 
 
-
-
-
-Yoshino & Zhu              Expires May 4, 2017                  [Page 7]
+Yoshino & Zhu          Expires September 25, 2017               [Page 8]
 
-Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
+Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
    [BidiwebSurvey]
@@ -399,6 +455,10 @@ Internet-DrafWiSH: A General Purpose Message Framing over B October 2016
               Communication over the Web, and What's Missing", January
               2014, <https://github.com/bidiweb/bidiweb-semantics/blob/
               master/SurveyOfProtocolGaps.md>.
+
+   [BidiwebBinding]
+              Bidiweb, , "Issue about WiSH JavaScript binding", March
+              2017, <https://github.com/bidiweb/wish/issues/12>.
 
    [TransportAbstraction]
               Zhu, W., "http-transport-abstraction", July 2016,
@@ -441,8 +501,4 @@ Authors' Addresses
 
 
 
-
-
-
-
-Yoshino & Zhu              Expires May 4, 2017                  [Page 8]
+Yoshino & Zhu          Expires September 25, 2017               [Page 9]

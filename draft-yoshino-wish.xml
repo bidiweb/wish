@@ -5,7 +5,7 @@
 <?rfc toc="yes" ?>
 <rfc
    category="std"
-   docName="draft-yoshino-wish-01"
+   docName="draft-yoshino-wish-02"
    ipr="trust200902">
   <front>
     <title>WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire Protocols (HTTP) </title>
@@ -27,7 +27,7 @@
         <email>wenboz@google.com</email>
       </address>
     </author>
-    <date month="October" year="2016"/>
+    <date month="March" year="2017"/>
     <abstract>
       <t>
         This document defines a general purpose message framing named WiSH which supports bi-directional message-based communication over byte-stream oriented protocols such as HTTP (in its standard semantics).
@@ -132,9 +132,9 @@
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-------+-+-------------+-------------------------------+
-|F|0|0|0|opcode |0|Payload      |Extended payload length        |
-|I| | | |4 bit  | |length       |16 bit if payload length is 126|
-|N| | | |       | |7 bit        |64 bit if payload length is 127|
+|F|C|0|0|opcode |0|Payload      |Extended payload length        |
+|I|M| | |4 bit  | |length       |16 bit if payload length is 126|
+|N|P| | |       | |7 bit        |64 bit if payload length is 127|
 +-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +
 |                                                               |
 + - - - - - - - - - - - - - - - +-------------------------------+
@@ -172,6 +172,13 @@
       </t>
 
       <t>
+        The CMP bit indicates whether the message is compressed.
+        The CMP bit of the first frame MUST be set to 1 when compression is enabled for the message.
+        Otherwise, it MUST be set to 0.
+        The CMP bit of non-first frames MUST be always set to 0.
+      </t>
+
+      <t>
         The message type distinction by the opcode field (text and binary) is kept to allow better Web support.
         One of the possible use cases is to use the text type for exchanging metadata encoded in JSON, etc., and the binary type for exchanging non-metadata messages.
       </t>
@@ -201,9 +208,14 @@
       </t>
     </section>
 
-    <section title="WebSocket Compatibility">
+    <section title="Content Negotiation and WebSocket Compatibility Consideration">
       <t>
         In this section, we discuss how to bridge WiSH and WebSocket.
+      </t>
+
+      <t>
+        The JavaScript binding and wire protocol handshake with WebSocket port is future work.
+        Current thoughts are documented at <xref target="BidiwebBinding" />.
       </t>
 
       <section title="Subprotocol Negotiation">
@@ -257,6 +269,57 @@
         <t>
           Where compatibility with WebSocket doesn't matter, the <spanx style="verb">Content-Type</spanx> header value MAY differ between the HTTP request and HTTP response (see <xref target="http" />).
           This includes a combination of WiSH and non-WiSH media type.
+        </t>
+      </section>
+
+      <section title="Compression Negotiation">
+        <t>
+          When layered over HTTP, a client and server MAY choose to negotiate a compression to use by using the standard HTTP <spanx style="verb">Accept-Encoding</spanx> and <spanx style="verb">Content-Encoding</spanx> headers.
+          A client MAY list offered compression methods as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Accept-Encoding:
+        web-stream-deflate;
+        client_max_window_bits; server_max_window_bits=10, q=1,
+        web-stream-deflate;
+        client_max_window_bits; server_max_window_bits; q=0.5
+          </artwork>
+        </figure>
+
+        <t>
+          Each element in the header value consists of the identifier of the compression method followed by parameters configuring the method.
+          The <spanx style="verb">web-stream-deflate</spanx> compression method in the example shows how the compression algorithm used for the <spanx style="verb">permessage-deflate</spanx> can be configured for the example.
+          This example includes the <spanx style="verb">client_max_window_bits</spanx> for WebSocket compatibility which indicates whether or not the client supports the <spanx style="verb">client_max_window_bits</spanx> parameter.
+        </t>
+
+        <t>
+          The client MAY indicate use of the compression method for the HTTP request body by using the <spanx style="verb">Content-Encoding</spanx> header as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Content-Encoding: web-stream-deflate
+          </artwork>
+        </figure>
+
+        <t>
+          The server chooses one compression method from the offered ones and notifies the chosen compression method with the <spanx style="verb">Content-Encoding</spanx> header as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Content-Encoding: web-stream-deflate
+          </artwork>
+        </figure>
+
+        <t>
+          The server MAY also choose not to include the <spanx style="verb">Content-Encoding</spanx> header to indicate that it rejects use of any compression method.
+        </t>
+
+        <t>
+          The client SHOULD NOT start streaming any data (with the request body) before the client receives all the response headers from the server, which concludes the negotiation process.
         </t>
       </section>
 
@@ -325,6 +388,14 @@
           <author initials="T." surname="Yoshino" fullname="Takeshi Yoshino"></author>
           <author initials="W." surname="Zhu" fullname="Wenbo Zhu"></author>
           <date month="January" year="2014" />
+        </front>
+      </reference>
+
+      <reference anchor="BidiwebBinding" target="https://github.com/bidiweb/wish/issues/12">
+        <front>
+          <title>Issue about WiSH JavaScript binding</title>
+          <author surname="Bidiweb"></author>
+          <date month="March" year="2017" />
         </front>
       </reference>
 
