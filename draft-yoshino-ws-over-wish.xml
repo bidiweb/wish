@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?rfc notedraftinprogress="yes" ?>
+<?rfc rfcprocack="yes" ?>
+<?rfc symrefs="yes" ?>
+<?rfc toc="yes" ?>
+<rfc
+   category="std"
+   docName="draft-yoshino-ws-over-wish-00"
+   ipr="trust200902">
+  <front>
+    <title>WebSocket over WiSH</title>
+    <author
+       initials="T.Y."
+       surname="Yoshino"
+       fullname="Takeshi Yoshino">
+      <organization>Google, Inc.</organization>
+      <address>
+        <email>tyoshino@google.com</email>
+      </address>
+    </author>
+    <author
+       initials="W.Z."
+       surname="Zhu"
+       fullname="Wenbo Zhu">
+      <organization>Google, Inc.</organization>
+      <address>
+        <email>wenboz@google.com</email>
+      </address>
+    </author>
+    <date month="May" year="2017"/>
+    <abstract>
+      <t>
+        This document discusses how to bridge the WiSH framing (draft-yoshino-wish) and WebSocket.
+      </t>
+    </abstract>
+  </front>
+
+  <middle>
+    <section title="Introduction">
+      <t>
+        This document discusses how to bridge the WiSH framing (draft-yoshino-wish) and WebSocket.
+      </t>
+
+      <t>
+        Once the WiSH idea is successfully adopted, binding to the WebSocket API could be introduced as further optimization for existing WebSocket users.
+      </t>
+
+      <t>
+        The JavaScript binding and wire protocol handshake with WebSocket port is future work.
+        Current thoughts are documented at <xref target="BidiwebBinding" />.
+      </t>
+    </section>
+
+    <section title="Conformance Requirements and Terminology">
+      <t>
+        The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in <xref target="RFC2119" />.
+      </t>
+
+      <t>
+        Requirements phrased in the imperative as part of algorithms (such as "strip any leading space characters" or "return false and abort these steps") are to be interpreted with the meaning of the key word ("MUST", "SHOULD", "MAY", etc.) used in introducing the algorithm.
+      </t>
+
+      <t>
+        Conformance requirements phrased as algorithms or specific steps can be implemented in any manner, so long as the end result is equivalent.
+        In particular, the algorithms defined in this specification are intended to be easy to understand and are not intended to be performant.
+      </t>
+    </section>
+
+    <section title="Content Negotiation and WebSocket Compatibility Consideration">
+      <t>
+        In this section, we discuss how to bridge WiSH and WebSocket.
+      </t>
+
+      <t>
+        The JavaScript binding and wire protocol handshake with WebSocket port is future work.
+        Current thoughts are documented at <xref target="BidiwebBinding" />.
+      </t>
+
+      <section title="Subprotocol Negotiation">
+        <t>
+          When layered over HTTP, a client and server MAY choose to negotiate a subprotocol (in the WebSocket term) to use by using the standard HTTP <spanx style="verb">Accept</spanx> and <spanx style="verb">Content-Type</spanx> headers.
+          In order to be compatible with <xref target="RFC6455" />, a client MAY list offered subprotocols as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Accept: application/web-stream; protocol=foo; q=1,
+        application/web-stream; protocol=bar; q=0.5
+          </artwork>
+        </figure>
+
+        <t>
+          Following the <spanx style="verb">application/web-stream</spanx> media type, a parameter named <spanx style="verb">protocol</spanx> is specified with the subprotocol name as its value.
+          A client offers multiple subprotocols by listing multiple <spanx style="verb">application/web-stream</spanx> media type with the <spanx style="verb">protocol</spanx> parameter with different values.
+        </t>
+
+        <t>
+          The client MAY indicate that the media type of the request body is WiSH by using the <spanx style="verb">Content-Type</spanx> header as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Content-Type: application/web-stream
+          </artwork>
+        </figure>
+
+        <t>
+          Where compatibility with WebSocket matters, symmetric subprotocols MUST be used.
+          When multiple subprotocols are offered, a client MUST NOT specify the <spanx style="verb">protocol</spanx> parameter because it's not determined which subprotocol will be chosen by the server until the negotiation is done.
+          When a single subprotocol is offered, a client MAY specify the <spanx style="verb">protocol</spanx> parameter which is the same as the one specified in the <spanx style="verb">Accept</spanx> header.
+        </t>
+
+        <t>
+          The server chooses one subprotocol from the offered ones and notifies the chosen subprotocol with the <spanx style="verb">Content-Type</spanx> header as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Content-Type: application/web-stream; protocol=foo
+          </artwork>
+        </figure>
+
+        <t>
+          The client SHOULD NOT start streaming any data (with the request body) before the client receives all the response headers from the server, which concludes the negotiation process.
+        </t>
+
+        <t>
+          Where compatibility with WebSocket doesn't matter, the <spanx style="verb">Content-Type</spanx> header value MAY differ between the HTTP request and HTTP response.
+          This includes a combination of WiSH and non-WiSH media type.
+        </t>
+      </section>
+
+      <section title="Compression Negotiation">
+        <t>
+          When layered over HTTP, a client and server MAY choose to negotiate a compression to use by using the standard HTTP <spanx style="verb">Accept-Encoding</spanx> and <spanx style="verb">Content-Encoding</spanx> headers.
+          A client MAY list offered compression methods as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Accept-Encoding:
+        web-stream-deflate;
+        client_max_window_bits; server_max_window_bits=10, q=1,
+        web-stream-deflate;
+        client_max_window_bits; server_max_window_bits; q=0.5
+          </artwork>
+        </figure>
+
+        <t>
+          Each element in the header value consists of the identifier of the compression method followed by parameters configuring the method.
+          The <spanx style="verb">web-stream-deflate</spanx> compression method in the example shows how the compression algorithm used for the <spanx style="verb">permessage-deflate</spanx> can be configured for the example.
+          This example includes the <spanx style="verb">client_max_window_bits</spanx> for WebSocket compatibility which indicates whether or not the client supports the <spanx style="verb">client_max_window_bits</spanx> parameter.
+        </t>
+
+        <t>
+          The client MAY indicate use of the compression method for the HTTP request body by using the <spanx style="verb">Content-Encoding</spanx> header as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Content-Encoding: web-stream-deflate
+          </artwork>
+        </figure>
+
+        <t>
+          The server chooses one compression method from the offered ones and notifies the chosen compression method with the <spanx style="verb">Content-Encoding</spanx> header as follows:
+        </t>
+
+        <figure>
+          <artwork>
+    Content-Encoding: web-stream-deflate
+          </artwork>
+        </figure>
+
+        <t>
+          The server MAY also choose not to include the <spanx style="verb">Content-Encoding</spanx> header to indicate that it rejects use of any compression method.
+        </t>
+
+        <t>
+          The client SHOULD NOT start streaming any data (with the request body) before the client receives all the response headers from the server, which concludes the negotiation process.
+        </t>
+      </section>
+    </section>
+
+    <section title="Acknowledgements">
+      <t>
+        Thank you to the following people for giving feedback to the document: Ben Christensen, Costin Manolache, Kari Hurtta, Loïc Hoguin, Roberto Peon, Van Catha.
+      </t>
+    </section>
+  </middle>
+
+  <back>
+    <references title="Normative References">
+      <?rfc include="reference.RFC.2119" ?>
+      <?rfc include="reference.RFC.6455" ?>
+    </references>
+
+    <references title="Non-normative References">
+      <reference anchor="WSAPI" target="https://html.spec.whatwg.org/multipage/comms.html#network">
+        <front>
+          <title>HTML Living Standard - Web sockets</title>
+          <author>
+            <organization>WHATWG</organization>
+          </author>
+          <date month="May" year="2017" />
+        </front>
+      </reference>
+
+      <reference anchor="BidiwebBinding" target="https://github.com/bidiweb/wish/issues/12">
+        <front>
+          <title>Issue about WiSH JavaScript binding</title>
+          <author surname="Bidiweb"></author>
+          <date month="March" year="2017" />
+        </front>
+      </reference>
+    </references>
+  </back>
+</rfc>
