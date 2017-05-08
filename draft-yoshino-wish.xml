@@ -158,10 +158,16 @@
             %x0 denotes a continuation frame
           </t>
           <t>
-            %x1 denotes a text frame
+            %x1 denotes the initial frame of a text message
           </t>
           <t>
-            %x2 denotes a binary frame
+            %x2 denotes the initial frame of a binary message
+          </t>
+          <t>
+            %x3 denotes the initial frame of a text metadata message
+          </t>
+          <t>
+            %x4 denotes the initial frame of a binary metadata message
           </t>
         </list>
 
@@ -182,7 +188,10 @@
 
       <t>
         The message type distinction by the opcode field (text and binary) is kept to allow better Web support.
-        One of the possible use cases is to use the text type for exchanging metadata encoded in JSON, etc., and the binary type for exchanging non-metadata messages.
+      </t>
+
+      <t>
+        The two metadata opcodes can be used for exchanging metadata e.g. using messages with opcode set to %x3 with metadata encoded in JSON in its payload field.
       </t>
 
       <t>
