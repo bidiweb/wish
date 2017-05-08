@@ -205,8 +205,11 @@
 
       <t>
         The permessage-deflate extension <xref target="RFC7692" /> is defined for the WebSocket protocol, to add a compression mechanism to it.
-        No extension mechanism is defined for WiSH.
-        Compression can be implemented by underlying protocols or in the application layer if needed.
+        The permessage-deflate extension can be applied to WiSH.
+        The details are to be specified <xref target="BidiwebCompression" />.
+      </t>
+
+      <t>
         What contents are exchanged and in what encoding they are exchanged over WiSH are to be defined by the application layer.
       </t>
     </section>
@@ -289,6 +292,14 @@
           <author initials="T." surname="Yoshino" fullname="Takeshi Yoshino"></author>
           <author initials="W." surname="Zhu" fullname="Wenbo Zhu"></author>
           <date month="January" year="2014" />
+        </front>
+      </reference>
+
+      <reference anchor="BidiwebCompression" target="https://github.com/bidiweb/wish/issues/8">
+        <front>
+          <title>Issue about WiSH Compression</title>
+          <author surname="Bidiweb"></author>
+          <date month="March" year="2017" />
         </front>
       </reference>
 

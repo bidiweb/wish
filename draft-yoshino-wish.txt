@@ -252,11 +252,12 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    underlying protocols.
 
    The permessage-deflate extension [RFC7692] is defined for the
-   WebSocket protocol, to add a compression mechanism to it.  No
-   extension mechanism is defined for WiSH.  Compression can be
-   implemented by underlying protocols or in the application layer if
-   needed.  What contents are exchanged and in what encoding they are
-   exchanged over WiSH are to be defined by the application layer.
+   WebSocket protocol, to add a compression mechanism to it.  The
+   permessage-deflate extension can be applied to WiSH.  The details are
+   to be specified [BidiwebCompression].
+
+   What contents are exchanged and in what encoding they are exchanged
+   over WiSH are to be defined by the application layer.
 
 6.  Using WiSH over HTTP
 
@@ -273,7 +274,6 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    when they find that the byte stream in a text message is not a valid
    UTF-8 stream.  To conform to the requirement, RFC6455 server
    frameworks check UTF-8 validness.  The contents of text messages of
-   WiSH also MUST be a valid UTF-8 stream.  However, WiSH endpoints are
 
 
 
@@ -282,6 +282,7 @@ Yoshino & Zhu           Expires September 2, 2017               [Page 5]
 Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
+   WiSH also MUST be a valid UTF-8 stream.  However, WiSH endpoints are
    not required to check UTF-8 validness.  This provides more
    flexibility to server development.  For example, a server may choose
    to check UTF-8 validness inside a JSON parser.
@@ -328,8 +329,7 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    [Fetch]    WHATWG, "Fetch Living Standard", May 2017,
               <https://fetch.spec.whatwg.org/>.
 
-   [Streams]  WHATWG, "Streams Living Standard", April 2017,
-              <https://streams.spec.whatwg.org/>.
+
 
 
 
@@ -338,11 +338,18 @@ Yoshino & Zhu           Expires September 2, 2017               [Page 6]
 Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
+   [Streams]  WHATWG, "Streams Living Standard", April 2017,
+              <https://streams.spec.whatwg.org/>.
+
    [BidiwebSurvey]
               Yoshino, T. and W. Zhu, "Non Request-Response
               Communication over the Web, and What's Missing", January
               2014, <https://github.com/bidiweb/bidiweb-semantics/blob/
               master/SurveyOfProtocolGaps.md>.
+
+   [BidiwebCompression]
+              Bidiweb, , "Issue about WiSH Compression", March 2017,
+              <https://github.com/bidiweb/wish/issues/8>.
 
    [TransportAbstraction]
               Zhu, W., "http-transport-abstraction", July 2016,
@@ -364,13 +371,6 @@ Authors' Addresses
    Google, Inc.
 
    Email: wenboz@google.com
-
-
-
-
-
-
-
 
 
 
