@@ -209,15 +209,15 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
    o  %x0 denotes a continuation frame
 
-   o  %x1 denotes a text frame
+   o  %x1 denotes the initial frame of a text message
 
-   o  %x2 denotes a binary frame
+   o  %x2 denotes the initial frame of a binary message
+
+   o  %x3 denotes the initial frame of a text metadata message
+
+   o  %x4 denotes the initial frame of a binary metadata message
 
    Any values not listed here are reserved.
-
-   The FIN bit together with the continuation frame opcode, payload
-   length and extended payload length work in the same way as the
-   WebSocket protocol to represent messages.  The fragmentation
 
 
 
@@ -226,6 +226,9 @@ Yoshino & Zhu           Expires September 2, 2017               [Page 4]
 Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
+   The FIN bit together with the continuation frame opcode, payload
+   length and extended payload length work in the same way as the
+   WebSocket protocol to represent messages.  The fragmentation
    mechanism allows for flushing part of a large message payload without
    waiting for the total size of the message to be determined.
 
@@ -235,9 +238,11 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    first frames MUST be always set to 0.
 
    The message type distinction by the opcode field (text and binary) is
-   kept to allow better Web support.  One of the possible use cases is
-   to use the text type for exchanging metadata encoded in JSON, etc.,
-   and the binary type for exchanging non-metadata messages.
+   kept to allow better Web support.
+
+   The two metadata opcodes can be used for exchanging metadata e.g.
+   using messages with opcode set to %x3 with metadata encoded in JSON
+   in its payload field.
 
    The status code and status reason defined in the WebSocket protocol
    are dropped.
@@ -269,11 +274,6 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    UTF-8 stream.  To conform to the requirement, RFC6455 server
    frameworks check UTF-8 validness.  The contents of text messages of
    WiSH also MUST be a valid UTF-8 stream.  However, WiSH endpoints are
-   not required to check UTF-8 validness.  This provides more
-   flexibility to server development.  For example, a server may choose
-   to check UTF-8 validness inside a JSON parser.
-
-
 
 
 
@@ -281,6 +281,10 @@ Yoshino & Zhu           Expires September 2, 2017               [Page 5]
 
 Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
+
+   not required to check UTF-8 validness.  This provides more
+   flexibility to server development.  For example, a server may choose
+   to check UTF-8 validness inside a JSON parser.
 
 8.  Acknowledgements
 
@@ -326,10 +330,6 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
    [Streams]  WHATWG, "Streams Living Standard", April 2017,
               <https://streams.spec.whatwg.org/>.
-
-
-
-
 
 
 
