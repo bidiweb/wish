@@ -1,0 +1,280 @@
+
+
+
+
+Network Working Group                                         T. Yoshino
+Internet-Draft                                                    W. Zhu
+Intended status: Standards Track                            Google, Inc.
+Expires: November 9, 2017                                    May 8, 2017
+
+
+                          WebSocket over WiSH
+                     draft-yoshino-ws-over-wish-00
+
+Abstract
+
+   This document discusses how to bridge the WiSH framing (draft-
+   yoshino-wish) and WebSocket.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at http://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on November 9, 2017.
+
+Copyright Notice
+
+   Copyright (c) 2017 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents
+   (http://trustee.ietf.org/license-info) in effect on the date of
+   publication of this document.  Please review these documents
+   carefully, as they describe your rights and restrictions with respect
+   to this document.  Code Components extracted from this document must
+   include Simplified BSD License text as described in Section 4.e of
+   the Trust Legal Provisions and are provided without warranty as
+   described in the Simplified BSD License.
+
+
+
+
+
+
+Yoshino & Zhu           Expires November 9, 2017                [Page 1]
+
+Internet-Draft             WebSocket over WiSH                  May 2017
+
+
+Table of Contents
+
+   1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Conformance Requirements and Terminology  . . . . . . . . . .   2
+   3.  Content Negotiation and WebSocket Compatibility Consideration   2
+     3.1.  Subprotocol Negotiation . . . . . . . . . . . . . . . . .   3
+     3.2.  Compression Negotiation . . . . . . . . . . . . . . . . .   4
+   4.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   4
+   5.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   5
+     5.1.  Normative References  . . . . . . . . . . . . . . . . . .   5
+     5.2.  Non-normative References  . . . . . . . . . . . . . . . .   5
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   5
+
+1.  Introduction
+
+   This document discusses how to bridge the WiSH framing (draft-
+   yoshino-wish) and WebSocket.
+
+   Once the WiSH idea is successfully adopted, binding to the WebSocket
+   API could be introduced as further optimization for existing
+   WebSocket users.
+
+   The JavaScript binding and wire protocol handshake with WebSocket
+   port is future work.  Current thoughts are documented at
+   [BidiwebBinding].
+
+2.  Conformance Requirements and Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
+   Requirements phrased in the imperative as part of algorithms (such as
+   "strip any leading space characters" or "return false and abort these
+   steps") are to be interpreted with the meaning of the key word
+   ("MUST", "SHOULD", "MAY", etc.) used in introducing the algorithm.
+
+   Conformance requirements phrased as algorithms or specific steps can
+   be implemented in any manner, so long as the end result is
+   equivalent.  In particular, the algorithms defined in this
+   specification are intended to be easy to understand and are not
+   intended to be performant.
+
+3.  Content Negotiation and WebSocket Compatibility Consideration
+
+   In this section, we discuss how to bridge WiSH and WebSocket.
+
+
+
+
+
+Yoshino & Zhu           Expires November 9, 2017                [Page 2]
+
+Internet-Draft             WebSocket over WiSH                  May 2017
+
+
+   The JavaScript binding and wire protocol handshake with WebSocket
+   port is future work.  Current thoughts are documented at
+   [BidiwebBinding].
+
+3.1.  Subprotocol Negotiation
+
+   When layered over HTTP, a client and server MAY choose to negotiate a
+   subprotocol (in the WebSocket term) to use by using the standard HTTP
+   "Accept" and "Content-Type" headers.  In order to be compatible with
+   [RFC6455], a client MAY list offered subprotocols as follows:
+
+       Accept: application/web-stream; protocol=foo; q=1,
+           application/web-stream; protocol=bar; q=0.5
+
+   Following the "application/web-stream" media type, a parameter named
+   "protocol" is specified with the subprotocol name as its value.  A
+   client offers multiple subprotocols by listing multiple "application/
+   web-stream" media type with the "protocol" parameter with different
+   values.
+
+   The client MAY indicate that the media type of the request body is
+   WiSH by using the "Content-Type" header as follows:
+
+       Content-Type: application/web-stream
+
+   Where compatibility with WebSocket matters, symmetric subprotocols
+   MUST be used.  When multiple subprotocols are offered, a client MUST
+   NOT specify the "protocol" parameter because it's not determined
+   which subprotocol will be chosen by the server until the negotiation
+   is done.  When a single subprotocol is offered, a client MAY specify
+   the "protocol" parameter which is the same as the one specified in
+   the "Accept" header.
+
+   The server chooses one subprotocol from the offered ones and notifies
+   the chosen subprotocol with the "Content-Type" header as follows:
+
+       Content-Type: application/web-stream; protocol=foo
+
+   The client SHOULD NOT start streaming any data (with the request
+   body) before the client receives all the response headers from the
+   server, which concludes the negotiation process.
+
+   Where compatibility with WebSocket doesn't matter, the "Content-Type"
+   header value MAY differ between the HTTP request and HTTP response.
+   This includes a combination of WiSH and non-WiSH media type.
+
+
+
+
+
+
+Yoshino & Zhu           Expires November 9, 2017                [Page 3]
+
+Internet-Draft             WebSocket over WiSH                  May 2017
+
+
+3.2.  Compression Negotiation
+
+   When layered over HTTP, a client and server MAY choose to negotiate a
+   compression to use by using the standard HTTP "Accept-Encoding" and
+   "Content-Encoding" headers.  A client MAY list offered compression
+   methods as follows:
+
+       Accept-Encoding:
+           web-stream-deflate;
+           client_max_window_bits; server_max_window_bits=10, q=1,
+           web-stream-deflate;
+           client_max_window_bits; server_max_window_bits; q=0.5
+
+   Each element in the header value consists of the identifier of the
+   compression method followed by parameters configuring the method.
+   The "web-stream-deflate" compression method in the example shows how
+   the compression algorithm used for the "permessage-deflate" can be
+   configured for the example.  This example includes the
+   "client_max_window_bits" for WebSocket compatibility which indicates
+   whether or not the client supports the "client_max_window_bits"
+   parameter.
+
+   The client MAY indicate use of the compression method for the HTTP
+   request body by using the "Content-Encoding" header as follows:
+
+       Content-Encoding: web-stream-deflate
+
+   The server chooses one compression method from the offered ones and
+   notifies the chosen compression method with the "Content-Encoding"
+   header as follows:
+
+       Content-Encoding: web-stream-deflate
+
+   The server MAY also choose not to include the "Content-Encoding"
+   header to indicate that it rejects use of any compression method.
+
+   The client SHOULD NOT start streaming any data (with the request
+   body) before the client receives all the response headers from the
+   server, which concludes the negotiation process.
+
+4.  Acknowledgements
+
+   Thank you to the following people for giving feedback to the
+   document: Ben Christensen, Costin Manolache, Kari Hurtta, Loic
+   Hoguin, Roberto Peon, Van Catha.
+
+
+
+
+
+
+Yoshino & Zhu           Expires November 9, 2017                [Page 4]
+
+Internet-Draft             WebSocket over WiSH                  May 2017
+
+
+5.  References
+
+5.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, DOI 10.17487/
+              RFC2119, March 1997,
+              <http://www.rfc-editor.org/info/rfc2119>.
+
+   [RFC6455]  Fette, I. and A. Melnikov, "The WebSocket Protocol", RFC
+              6455, DOI 10.17487/RFC6455, December 2011,
+              <http://www.rfc-editor.org/info/rfc6455>.
+
+5.2.  Non-normative References
+
+   [WSAPI]    WHATWG, "HTML Living Standard - Web sockets", May 2017,
+              <https://html.spec.whatwg.org/multipage/
+              comms.html#network>.
+
+   [BidiwebBinding]
+              Bidiweb, , "Issue about WiSH JavaScript binding", March
+              2017, <https://github.com/bidiweb/wish/issues/12>.
+
+Authors' Addresses
+
+   Takeshi Yoshino
+   Google, Inc.
+
+   Email: tyoshino@google.com
+
+
+   Wenbo Zhu
+   Google, Inc.
+
+   Email: wenboz@google.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Yoshino & Zhu           Expires November 9, 2017                [Page 5]

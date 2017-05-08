@@ -30,9 +30,9 @@
     <date month="March" year="2017"/>
     <abstract>
       <t>
-        This document defines a general purpose message framing named WiSH which supports bi-directional message-based communication over byte-stream oriented protocols such as HTTP (in its standard semantics).
-        The WiSH framing is designed to be compatible with WebSocket.
-        You may want to think about WiSH as a binary and bi-directional alternative to the framing defined for the server-sent events <xref target="SSE" />.
+        This document defines a general purpose message framing named WiSH which supports bi-directional (bidi) message-based communication over byte-stream oriented protocols such as HTTP (in its standard semantics).
+        WiSH is designed to be compatible with WebSocket.
+        WiSH can be viewed as a binary and bidi alternative to the framing defined for the server-sent events (SSE, EventSource) Web API <xref target="SSE" />.
       </t>
     </abstract>
   </front>
@@ -40,64 +40,64 @@
   <middle>
     <section title="Introduction">
       <t>
-        The WebSocket protocol was proposed to provide native client-server bi-directional messaging for the Web.
-        It has been implemented and deployed widely, but there are still missing semantics and functionalities. See <xref target="BidiwebSurvey" />.
+        The WebSocket protocol was proposed to provide native client-server bidi messaging for the Web.
+        It has been implemented and deployed widely, but there are still missing semantics and features.
+        See <xref target="BidiwebSurvey" />.
       </t>
 
       <t>
-        WiSH is a message framing format for use over the standard HTTP semantics to provide bi-directional messaging semantics.
+        WiSH is a general purpose message framing for use over the standard HTTP semantics to provide bidi messaging semantics.
         WiSH stands for Web in Strict HTTP.
-        The communication protocol providing the HTTP semantics can be HTTP/1.1 <xref target="RFC7231" />, HTTP/2 <xref target="RFC7540" />, HTTP/2 + QUIC <xref target="QUIC" />, or any future protocols.
-        Wire-protocol functionalities such as compression, multiplexing, session priority, etc. are provided by the underlying protocol <xref target="TransportAbstraction" />.
-        Unlike HTTP/2, HTTP/1.1 doesn't specify if earlier 2xx responses are allowed <xref target="RFC7540" />.
-        Therefore when HTTP/1.1 is used as the underlying protocol, full-duplex communication may be broken if the client, server or any proxy chooses to buffer or reject earlier 2xx responses.
-        Since proxies may buffer response bodies, communication over WiSH may experience extra latency compared to WebSocket. When HTTPS is used, response buffering by proxies is less likely to happen.
       </t>
 
       <t>
-        Wire-protocol features of WebSocket, such as handshake or control messages, are all dropped. The WiSH framing respects the semantics of the underlying protocol (as opposed to turning it to a transport protocol).
+        The communication protocol providing the standard HTTP semantics can be HTTP/1.1 <xref target="RFC7231" />, HTTP/2 <xref target="RFC7540" />, HTTP/2 + QUIC <xref target="QUIC" />, or any future protocols.
+        Wire protocol features such as multiplexing, session priority, etc. are provided by the underlying protocol <xref target="TransportAbstraction" />.
+        Unlike HTTP/2, HTTP/1.1 doesn't specify if earlier 2xx responses are allowed <xref target="RFC7540" />.
+        Therefore, when HTTP/1.1 is used as the underlying protocol, full-duplex communication may be broken if the client, server or any intermediary chooses to buffer or reject earlier 2xx responses.
+        Since intermediaries may buffer response bodies, bidi communication over WiSH may experience extra latency compared to WebSocket.
+        When HTTPS is used, response body buffering by intermediaries is less likely to happen.
+      </t>
+
+      <t>
+        The wire protocol features of WebSocket, such as handshake or control messages, are all dropped.
+        WiSH respects the semantics of the underlying protocol (as opposed to turning it to a transport protocol).
         The concept of fragmentation is retained for enabling starting message transmission before determining the final length of the message.
       </t>
 
       <t>
-        Application-level protocols may use WiSH as the framing protocol to support bi-directional communication over HTTP and for Web and Internet clients.
+        Application-level protocols may use WiSH as the framing protocol to support bidi communication over HTTP and for Web and Internet clients.
       </t>
     </section>
 
     <section title="Background">
       <t>
-        There has been several attempts to improve bi-directional message-based communication on the Web.
+        There has been several attempts to improve bidi message-based communication on the Web.
       </t>
 
       <t>
-        The server-sent events <xref target="SSE" /> realized message-based communication in the server-to-client direction, by introducing a new Web API and a special message framing format while using HTTP as the wire protocol.
-        Except for the issue of possible buffering by intermediaries, the server-sent events work well with existing intermediaries and frameworks that support HTTP.
+        The server-sent events (SSE) <xref target="SSE" /> realized message-based communication in the server-to-client direction, by introducing a new Web API and a special message framing format while using HTTP as the wire protocol.
+        Except for the issue of possible buffering by intermediaries, SSE works well with existing intermediaries and frameworks that support HTTP.
       </t>
 
       <t>
-        WebSocket introduced both a new Web API and a new wire protocol to realize bi-directional message-based communication.
-        Because the wire protocol is incompatible with HTTP, intermediaries and frameworks have to be upgraded to understand the protocol to support WebSocket.
+        WebSocket realized bidi message-based communication by introducing both a new Web API and a new wire protocol.
+        Because the wire protocol is incompatible with HTTP, intermediaries and frameworks have to be upgraded to understand the wire protocol to support WebSocket.
       </t>
 
       <t>
         In parallel to the development of WebSocket, HTTP has been greatly improved with HTTP/2.
-        There are more improvements upcoming e.g. QUIC to the HTTP.
-        At the same time, the Web APIs for HTTP have also been improved.
-        The XMLHttpRequest is being replaced with the Fetch API <xref target="Fetch" /> which allows for streamed uploading and downloading of the body part of HTTP messages by using the Streams API <xref target="Streams" />.
-        The Streams API also enables implementing data transfer and various data processing (e.g. compression/decompression, message framing) in the form of the transform stream.
-        The transform stream mechanism is designed to allow for optimizing transfer and processing by offloading some part of them from the JavaScript world.
+        There are more improvements upcoming to the HTTP e.g. QUIC.
       </t>
 
       <t>
-        It's desirable that further evolution of bi-directional message-based communication utilize HTTP/2 to reduce cost of development and standardization.
-        Bidi communication should be multiplexed with normal HTTP traffic and should benefit from future transport-level improvements such as QUIC.
+        It's desirable that normal HTTP traffic and bidi message-based communication on the Web share further evolution to reduce cost of development and standardization.
+        Bidi message-based communication on the Web should be multiplexed with normal HTTP traffic and should benefit from future transport-level improvements such as QUIC.
       </t>
 
       <t>
-        The WiSH idea is based on the above analysis.
-        Combination of the Fetch API and transform streams enables efficient processing of the WiSH framing.
-        Use of the HTTP semantics as-is reduces cost and makes the Web simpler.
-        Once the WiSH idea is successfully adopted, binding to the WebSocket API could be introduced as further optimization for existing WebSocket users.
+        WiSH is designed based on the above analysis.
+        Use of the standard HTTP semantics as-is reduces cost and makes the Web simpler.
       </t>
     </section>
 
@@ -118,11 +118,11 @@
 
     <section title="WiSH Protocol">
       <t>
-        WiSH frames messages over an HTTP request or response body using the framing defined in <xref target="framing" />.
+        WiSH frames messages over an HTTP request body or response body using the framing defined in <xref target="framing" />.
       </t>
 
       <t>
-        The <spanx style="verb">Content-Type</spanx> header value of the underlying HTTP request/response message MUST be <spanx style="verb">application/web-stream</spanx>.
+        The <spanx style="verb">Content-Type</spanx> header value of the underlying HTTP request or response message for which WiSH is used MUST be <spanx style="verb">application/web-stream</spanx>.
       </t>
     </section>
 
@@ -146,12 +146,13 @@
       </figure>
 
       <t>
-        WiSH framing is compatible with the framing defined in <xref target="RFC6455" /> for the WebSocket protocol.
+        WiSH is compatible with the framing of the WebSocket protocol <xref target="RFC6455" />.
       </t>
 
       <t>
         The opcode field indicates how to interpret the payload data field.
         WiSH uses the following opcodes.
+
         <list style="symbols">
           <t>
             %x0 denotes a continuation frame
@@ -163,11 +164,12 @@
             %x2 denotes a binary frame
           </t>
         </list>
+
         Any values not listed here are reserved.
       </t>
 
       <t>
-        The FIN bit together with the continuation frame opcode, payload length and extended payload length work in the same way as WebSocket to represent frames and messages.
+        The FIN bit together with the continuation frame opcode, payload length and extended payload length work in the same way as the WebSocket protocol to represent messages.
         The fragmentation mechanism allows for flushing part of a large message payload without waiting for the total size of the message to be determined.
       </t>
 
@@ -202,127 +204,13 @@
 
     <section title="Using WiSH over HTTP" anchor="http">
       <t>
-        Standard HTTP (REST) semantics should be followed, especially the choice of the HTTP method.
+        The standard HTTP (REST) semantics should be followed, especially the choice of the HTTP method.
         Some HTTP semantics may not be applicable, e.g. the <spanx style="verb">Cache-Control</spanx> header, when the body is streamed.
         However, such limitation is not specific to WiSH.
       </t>
     </section>
 
-    <section title="Content Negotiation and WebSocket Compatibility Consideration">
-      <t>
-        In this section, we discuss how to bridge WiSH and WebSocket.
-      </t>
-
-      <t>
-        The JavaScript binding and wire protocol handshake with WebSocket port is future work.
-        Current thoughts are documented at <xref target="BidiwebBinding" />.
-      </t>
-
-      <section title="Subprotocol Negotiation">
-        <t>
-          When layered over HTTP, a client and server MAY choose to negotiate a subprotocol (in the WebSocket term) to use by using the standard HTTP <spanx style="verb">Accept</spanx> and <spanx style="verb">Content-Type</spanx> headers.
-          In order to be compatible with RFC6455, a client MAY list offered subprotocols as follows:
-        </t>
-
-        <figure>
-          <artwork>
-    Accept: application/web-stream; protocol=foo; q=1,
-        application/web-stream; protocol=bar; q=0.5
-          </artwork>
-        </figure>
-
-        <t>
-          Following the <spanx style="verb">application/web-stream</spanx> media type, a parameter named <spanx style="verb">protocol</spanx> is specified with the subprotocol name as its value.
-          A client offers multiple subprotocols by listing multiple <spanx style="verb">application/web-stream</spanx> media type with the <spanx style="verb">protocol</spanx> parameter with different values.
-        </t>
-
-        <t>
-          The client MAY indicate that the media type of the request body is WiSH by using the <spanx style="verb">Content-Type</spanx> header as follows:
-        </t>
-
-        <figure>
-          <artwork>
-    Content-Type: application/web-stream
-          </artwork>
-        </figure>
-
-        <t>
-          Where compatibility with WebSocket matters, symmetric subprotocols MUST be used.
-          When multiple subprotocols are offered, a client MUST NOT specify the <spanx style="verb">protocol</spanx> parameter because it's not determined which subprotocol will be chosen by the server until the negotiation is done.
-          When a single subprotocol is offered, a client MAY specify the <spanx style="verb">protocol</spanx> parameter which is the same as the one specified in the <spanx style="verb">Accept</spanx> header.
-        </t>
-
-        <t>
-          The server chooses one subprotocol from the offered ones and notifies the chosen subprotocol with the <spanx style="verb">Content-Type</spanx> header as follows:
-        </t>
-
-        <figure>
-          <artwork>
-    Content-Type: application/web-stream; protocol=foo
-          </artwork>
-        </figure>
-
-        <t>
-          The client SHOULD NOT start streaming any data (with the request body) before the client receives all the response headers from the server, which concludes the negotiation process.
-        </t>
-
-        <t>
-          Where compatibility with WebSocket doesn't matter, the <spanx style="verb">Content-Type</spanx> header value MAY differ between the HTTP request and HTTP response (see <xref target="http" />).
-          This includes a combination of WiSH and non-WiSH media type.
-        </t>
-      </section>
-
-      <section title="Compression Negotiation">
-        <t>
-          When layered over HTTP, a client and server MAY choose to negotiate a compression to use by using the standard HTTP <spanx style="verb">Accept-Encoding</spanx> and <spanx style="verb">Content-Encoding</spanx> headers.
-          A client MAY list offered compression methods as follows:
-        </t>
-
-        <figure>
-          <artwork>
-    Accept-Encoding:
-        web-stream-deflate;
-        client_max_window_bits; server_max_window_bits=10, q=1,
-        web-stream-deflate;
-        client_max_window_bits; server_max_window_bits; q=0.5
-          </artwork>
-        </figure>
-
-        <t>
-          Each element in the header value consists of the identifier of the compression method followed by parameters configuring the method.
-          The <spanx style="verb">web-stream-deflate</spanx> compression method in the example shows how the compression algorithm used for the <spanx style="verb">permessage-deflate</spanx> can be configured for the example.
-          This example includes the <spanx style="verb">client_max_window_bits</spanx> for WebSocket compatibility which indicates whether or not the client supports the <spanx style="verb">client_max_window_bits</spanx> parameter.
-        </t>
-
-        <t>
-          The client MAY indicate use of the compression method for the HTTP request body by using the <spanx style="verb">Content-Encoding</spanx> header as follows:
-        </t>
-
-        <figure>
-          <artwork>
-    Content-Encoding: web-stream-deflate
-          </artwork>
-        </figure>
-
-        <t>
-          The server chooses one compression method from the offered ones and notifies the chosen compression method with the <spanx style="verb">Content-Encoding</spanx> header as follows:
-        </t>
-
-        <figure>
-          <artwork>
-    Content-Encoding: web-stream-deflate
-          </artwork>
-        </figure>
-
-        <t>
-          The server MAY also choose not to include the <spanx style="verb">Content-Encoding</spanx> header to indicate that it rejects use of any compression method.
-        </t>
-
-        <t>
-          The client SHOULD NOT start streaming any data (with the request body) before the client receives all the response headers from the server, which concludes the negotiation process.
-        </t>
-      </section>
-
+    <section title="WebSocket Compatibility Consideration">
       <section title="Valid UTF-8 Requirement">
         <t>
           In RFC6455, endpoints are required to _Fail the WebSocket Connection_ when they find that the byte stream in a text message is not a valid UTF-8 stream.
@@ -352,37 +240,41 @@
     </references>
 
     <references title="Non-normative References">
-      <reference anchor="SSE" target="https://html.spec.whatwg.org/multipage/comms.html">
+      <reference
+          anchor="SSE"
+          target="https://html.spec.whatwg.org/multipage/comms.html#server-sent-events">
         <front>
-          <title>HTML Living Standard</title>
+          <title>HTML Living Standard - Server-sent events</title>
           <author>
             <organization>WHATWG</organization>
           </author>
-          <date month="October" year="2016" />
+          <date month="May" year="2017" />
         </front>
       </reference>
 
       <reference anchor="Fetch" target="https://fetch.spec.whatwg.org/">
         <front>
-          <title>Fetch Standard</title>
+          <title>Fetch Living Standard</title>
           <author>
             <organization>WHATWG</organization>
           </author>
-          <date month="October" year="2016" />
+          <date month="May" year="2017" />
         </front>
       </reference>
 
       <reference anchor="Streams" target="https://streams.spec.whatwg.org/">
         <front>
-          <title> Standard</title>
+          <title>Streams Living Standard</title>
           <author>
             <organization>WHATWG</organization>
           </author>
-          <date month="October" year="2016" />
+          <date month="April" year="2017" />
         </front>
       </reference>
 
-      <reference anchor="BidiwebSurvey" target="https://github.com/bidiweb/bidiweb-semantics/blob/master/SurveyOfProtocolGaps.md">
+      <reference
+          anchor="BidiwebSurvey"
+          target="https://github.com/bidiweb/bidiweb-semantics/blob/master/SurveyOfProtocolGaps.md">
         <front>
           <title>Non Request-Response Communication over the Web, and What's Missing</title>
           <author initials="T." surname="Yoshino" fullname="Takeshi Yoshino"></author>
@@ -391,15 +283,9 @@
         </front>
       </reference>
 
-      <reference anchor="BidiwebBinding" target="https://github.com/bidiweb/wish/issues/12">
-        <front>
-          <title>Issue about WiSH JavaScript binding</title>
-          <author surname="Bidiweb"></author>
-          <date month="March" year="2017" />
-        </front>
-      </reference>
-
-      <reference anchor="TransportAbstraction" target="https://github.com/bidiweb/http-transport-abstraction">
+      <reference
+          anchor="TransportAbstraction"
+          target="https://github.com/bidiweb/http-transport-abstraction">
         <front>
           <title>http-transport-abstraction</title>
           <author initials="W." surname="Zhu" fullname="Wenbo Zhu"></author>

@@ -5,7 +5,7 @@
 Network Working Group                                         T. Yoshino
 Internet-Draft                                                    W. Zhu
 Intended status: Standards Track                            Google, Inc.
-Expires: October 1, 2017                                  March 30, 2017
+Expires: September 2, 2017                                    March 2017
 
 
  WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire
@@ -15,11 +15,11 @@ Expires: October 1, 2017                                  March 30, 2017
 Abstract
 
    This document defines a general purpose message framing named WiSH
-   which supports bi-directional message-based communication over byte-
-   stream oriented protocols such as HTTP (in its standard semantics).
-   The WiSH framing is designed to be compatible with WebSocket.  You
-   may want to think about WiSH as a binary and bi-directional
-   alternative to the framing defined for the server-sent events [SSE].
+   which supports bi-directional (bidi) message-based communication over
+   byte-stream oriented protocols such as HTTP (in its standard
+   semantics).  WiSH is designed to be compatible with WebSocket.  WiSH
+   can be viewed as a binary and bidi alternative to the framing defined
+   for the server-sent events (SSE, EventSource) Web API [SSE].
 
 Status of This Memo
 
@@ -36,7 +36,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on October 1, 2017.
+   This Internet-Draft will expire on September 2, 2017.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Yoshino & Zhu            Expires October 1, 2017                [Page 1]
+Yoshino & Zhu           Expires September 2, 2017               [Page 1]
 
 Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
@@ -65,51 +65,51 @@ Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
    2.  Background  . . . . . . . . . . . . . . . . . . . . . . . . .   3
-   3.  Conformance Requirements and Terminology  . . . . . . . . . .   4
+   3.  Conformance Requirements and Terminology  . . . . . . . . . .   3
    4.  WiSH Protocol . . . . . . . . . . . . . . . . . . . . . . . .   4
    5.  Framing . . . . . . . . . . . . . . . . . . . . . . . . . . .   4
    6.  Using WiSH over HTTP  . . . . . . . . . . . . . . . . . . . .   5
-   7.  Content Negotiation and WebSocket Compatibility Consideration   5
-     7.1.  Subprotocol Negotiation . . . . . . . . . . . . . . . . .   6
-     7.2.  Compression Negotiation . . . . . . . . . . . . . . . . .   7
-     7.3.  Valid UTF-8 Requirement . . . . . . . . . . . . . . . . .   7
-   8.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   8
-   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   8
-     9.1.  Normative References  . . . . . . . . . . . . . . . . . .   8
-     9.2.  Non-normative References  . . . . . . . . . . . . . . . .   8
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   9
+   7.  WebSocket Compatibility Consideration . . . . . . . . . . . .   5
+     7.1.  Valid UTF-8 Requirement . . . . . . . . . . . . . . . . .   5
+   8.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   6
+   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   6
+     9.1.  Normative References  . . . . . . . . . . . . . . . . . .   6
+     9.2.  Non-normative References  . . . . . . . . . . . . . . . .   6
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   7
 
 1.  Introduction
 
    The WebSocket protocol was proposed to provide native client-server
-   bi-directional messaging for the Web.  It has been implemented and
-   deployed widely, but there are still missing semantics and
-   functionalities.  See [BidiwebSurvey].
+   bidi messaging for the Web.  It has been implemented and deployed
+   widely, but there are still missing semantics and features.  See
+   [BidiwebSurvey].
 
-   WiSH is a message framing format for use over the standard HTTP
-   semantics to provide bi-directional messaging semantics.  WiSH stands
-   for Web in Strict HTTP.  The communication protocol providing the
-   HTTP semantics can be HTTP/1.1 [RFC7231], HTTP/2 [RFC7540], HTTP/2 +
-   QUIC [QUIC], or any future protocols.  Wire-protocol functionalities
-   such as compression, multiplexing, session priority, etc. are
-   provided by the underlying protocol [TransportAbstraction].  Unlike
-   HTTP/2, HTTP/1.1 doesn't specify if earlier 2xx responses are allowed
-   [RFC7540].  Therefore when HTTP/1.1 is used as the underlying
-   protocol, full-duplex communication may be broken if the client,
-   server or any proxy chooses to buffer or reject earlier 2xx
-   responses.  Since proxies may buffer response bodies, communication
-   over WiSH may experience extra latency compared to WebSocket.  When
-   HTTPS is used, response buffering by proxies is less likely to
+   WiSH is a general purpose message framing for use over the standard
+   HTTP semantics to provide bidi messaging semantics.  WiSH stands for
+   Web in Strict HTTP.
+
+   The communication protocol providing the standard HTTP semantics can
+   be HTTP/1.1 [RFC7231], HTTP/2 [RFC7540], HTTP/2 + QUIC [QUIC], or any
+   future protocols.  Wire protocol features such as multiplexing,
+   session priority, etc. are provided by the underlying protocol
+   [TransportAbstraction].  Unlike HTTP/2, HTTP/1.1 doesn't specify if
+   earlier 2xx responses are allowed [RFC7540].  Therefore, when
+   HTTP/1.1 is used as the underlying protocol, full-duplex
+   communication may be broken if the client, server or any intermediary
+   chooses to buffer or reject earlier 2xx responses.  Since
+   intermediaries may buffer response bodies, bidi communication over
+   WiSH may experience extra latency compared to WebSocket.  When HTTPS
+   is used, response body buffering by intermediaries is less likely to
    happen.
 
-   Wire-protocol features of WebSocket, such as handshake or control
-   messages, are all dropped.  The WiSH framing respects the semantics
-   of the underlying protocol (as opposed to turning it to a transport
+   The wire protocol features of WebSocket, such as handshake or control
+   messages, are all dropped.  WiSH respects the semantics of the
+   underlying protocol (as opposed to turning it to a transport
    protocol).  The concept of fragmentation is retained for enabling
 
 
 
-Yoshino & Zhu            Expires October 1, 2017                [Page 2]
+Yoshino & Zhu           Expires September 2, 2017               [Page 2]
 
 Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
@@ -118,57 +118,39 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    the message.
 
    Application-level protocols may use WiSH as the framing protocol to
-   support bi-directional communication over HTTP and for Web and
-   Internet clients.
+   support bidi communication over HTTP and for Web and Internet
+   clients.
 
 2.  Background
 
-   There has been several attempts to improve bi-directional message-
-   based communication on the Web.
+   There has been several attempts to improve bidi message-based
+   communication on the Web.
 
-   The server-sent events [SSE] realized message-based communication in
-   the server-to-client direction, by introducing a new Web API and a
-   special message framing format while using HTTP as the wire protocol.
-   Except for the issue of possible buffering by intermediaries, the
-   server-sent events work well with existing intermediaries and
+   The server-sent events (SSE) [SSE] realized message-based
+   communication in the server-to-client direction, by introducing a new
+   Web API and a special message framing format while using HTTP as the
+   wire protocol.  Except for the issue of possible buffering by
+   intermediaries, SSE works well with existing intermediaries and
    frameworks that support HTTP.
 
-   WebSocket introduced both a new Web API and a new wire protocol to
-   realize bi-directional message-based communication.  Because the wire
+   WebSocket realized bidi message-based communication by introducing
+   both a new Web API and a new wire protocol.  Because the wire
    protocol is incompatible with HTTP, intermediaries and frameworks
-   have to be upgraded to understand the protocol to support WebSocket.
+   have to be upgraded to understand the wire protocol to support
+   WebSocket.
 
    In parallel to the development of WebSocket, HTTP has been greatly
-   improved with HTTP/2.  There are more improvements upcoming e.g.
-   QUIC to the HTTP.  At the same time, the Web APIs for HTTP have also
-   been improved.  The XMLHttpRequest is being replaced with the Fetch
-   API [Fetch] which allows for streamed uploading and downloading of
-   the body part of HTTP messages by using the Streams API [Streams].
-   The Streams API also enables implementing data transfer and various
-   data processing (e.g. compression/decompression, message framing) in
-   the form of the transform stream.  The transform stream mechanism is
-   designed to allow for optimizing transfer and processing by
-   offloading some part of them from the JavaScript world.
+   improved with HTTP/2.  There are more improvements upcoming to the
+   HTTP e.g.  QUIC.
 
-   It's desirable that further evolution of bi-directional message-based
-   communication utilize HTTP/2 to reduce cost of development and
-   standardization.  Bidi communication should be multiplexed with
-   normal HTTP traffic and should benefit from future transport-level
-   improvements such as QUIC.
+   It's desirable that normal HTTP traffic and bidi message-based
+   communication on the Web share further evolution to reduce cost of
+   development and standardization.  Bidi message-based communication on
+   the Web should be multiplexed with normal HTTP traffic and should
+   benefit from future transport-level improvements such as QUIC.
 
-   The WiSH idea is based on the above analysis.  Combination of the
-   Fetch API and transform streams enables efficient processing of the
-   WiSH framing.  Use of the HTTP semantics as-is reduces cost and makes
-   the Web simpler.  Once the WiSH idea is successfully adopted, binding
-   to the WebSocket API could be introduced as further optimization for
-   existing WebSocket users.
-
-
-
-Yoshino & Zhu            Expires October 1, 2017                [Page 3]
-
-Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
-
+   WiSH is designed based on the above analysis.  Use of the standard
+   HTTP semantics as-is reduces cost and makes the Web simpler.
 
 3.  Conformance Requirements and Terminology
 
@@ -181,6 +163,13 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    steps") are to be interpreted with the meaning of the key word
    ("MUST", "SHOULD", "MAY", etc.) used in introducing the algorithm.
 
+
+
+Yoshino & Zhu           Expires September 2, 2017               [Page 3]
+
+Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
+
+
    Conformance requirements phrased as algorithms or specific steps can
    be implemented in any manner, so long as the end result is
    equivalent.  In particular, the algorithms defined in this
@@ -189,11 +178,12 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 4.  WiSH Protocol
 
-   WiSH frames messages over an HTTP request or response body using the
-   framing defined in Section 5.
+   WiSH frames messages over an HTTP request body or response body using
+   the framing defined in Section 5.
 
-   The "Content-Type" header value of the underlying HTTP request/
-   response message MUST be "application/web-stream".
+   The "Content-Type" header value of the underlying HTTP request or
+   response message for which WiSH is used MUST be "application/web-
+   stream".
 
 5.  Framing
 
@@ -211,20 +201,13 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    |                                                               |
    +---------------------------------------------------------------+
 
-   WiSH framing is compatible with the framing defined in [RFC6455] for
-   the WebSocket protocol.
+   WiSH is compatible with the framing of the WebSocket protocol
+   [RFC6455].
 
    The opcode field indicates how to interpret the payload data field.
    WiSH uses the following opcodes.
 
    o  %x0 denotes a continuation frame
-
-
-
-Yoshino & Zhu            Expires October 1, 2017                [Page 4]
-
-Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
-
 
    o  %x1 denotes a text frame
 
@@ -233,10 +216,18 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    Any values not listed here are reserved.
 
    The FIN bit together with the continuation frame opcode, payload
-   length and extended payload length work in the same way as WebSocket
-   to represent frames and messages.  The fragmentation mechanism allows
-   for flushing part of a large message payload without waiting for the
-   total size of the message to be determined.
+   length and extended payload length work in the same way as the
+   WebSocket protocol to represent messages.  The fragmentation
+
+
+
+Yoshino & Zhu           Expires September 2, 2017               [Page 4]
+
+Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
+
+
+   mechanism allows for flushing part of a large message payload without
+   waiting for the total size of the message to be determined.
 
    The CMP bit indicates whether the message is compressed.  The CMP bit
    of the first frame MUST be set to 1 when compression is enabled for
@@ -264,121 +255,14 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 6.  Using WiSH over HTTP
 
-   Standard HTTP (REST) semantics should be followed, especially the
+   The standard HTTP (REST) semantics should be followed, especially the
    choice of the HTTP method.  Some HTTP semantics may not be
    applicable, e.g. the "Cache-Control" header, when the body is
    streamed.  However, such limitation is not specific to WiSH.
 
-7.  Content Negotiation and WebSocket Compatibility Consideration
+7.  WebSocket Compatibility Consideration
 
-   In this section, we discuss how to bridge WiSH and WebSocket.
-
-
-
-
-
-Yoshino & Zhu            Expires October 1, 2017                [Page 5]
-
-Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
-
-
-   The JavaScript binding and wire protocol handshake with WebSocket
-   port is future work.  Current thoughts are documented at
-   [BidiwebBinding].
-
-7.1.  Subprotocol Negotiation
-
-   When layered over HTTP, a client and server MAY choose to negotiate a
-   subprotocol (in the WebSocket term) to use by using the standard HTTP
-   "Accept" and "Content-Type" headers.  In order to be compatible with
-   RFC6455, a client MAY list offered subprotocols as follows:
-
-       Accept: application/web-stream; protocol=foo; q=1,
-           application/web-stream; protocol=bar; q=0.5
-
-   Following the "application/web-stream" media type, a parameter named
-   "protocol" is specified with the subprotocol name as its value.  A
-   client offers multiple subprotocols by listing multiple "application/
-   web-stream" media type with the "protocol" parameter with different
-   values.
-
-   The client MAY indicate that the media type of the request body is
-   WiSH by using the "Content-Type" header as follows:
-
-       Content-Type: application/web-stream
-
-   Where compatibility with WebSocket matters, symmetric subprotocols
-   MUST be used.  When multiple subprotocols are offered, a client MUST
-   NOT specify the "protocol" parameter because it's not determined
-   which subprotocol will be chosen by the server until the negotiation
-   is done.  When a single subprotocol is offered, a client MAY specify
-   the "protocol" parameter which is the same as the one specified in
-   the "Accept" header.
-
-   The server chooses one subprotocol from the offered ones and notifies
-   the chosen subprotocol with the "Content-Type" header as follows:
-
-       Content-Type: application/web-stream; protocol=foo
-
-   The client SHOULD NOT start streaming any data (with the request
-   body) before the client receives all the response headers from the
-   server, which concludes the negotiation process.
-
-   Where compatibility with WebSocket doesn't matter, the "Content-Type"
-   header value MAY differ between the HTTP request and HTTP response
-   (see Section 6).  This includes a combination of WiSH and non-WiSH
-   media type.
-
-
-
-
-
-Yoshino & Zhu            Expires October 1, 2017                [Page 6]
-
-Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
-
-
-7.2.  Compression Negotiation
-
-   When layered over HTTP, a client and server MAY choose to negotiate a
-   compression to use by using the standard HTTP "Accept-Encoding" and
-   "Content-Encoding" headers.  A client MAY list offered compression
-   methods as follows:
-
-       Accept-Encoding:
-           web-stream-deflate;
-           client_max_window_bits; server_max_window_bits=10, q=1,
-           web-stream-deflate;
-           client_max_window_bits; server_max_window_bits; q=0.5
-
-   Each element in the header value consists of the identifier of the
-   compression method followed by parameters configuring the method.
-   The "web-stream-deflate" compression method in the example shows how
-   the compression algorithm used for the "permessage-deflate" can be
-   configured for the example.  This example includes the
-   "client_max_window_bits" for WebSocket compatibility which indicates
-   whether or not the client supports the "client_max_window_bits"
-   parameter.
-
-   The client MAY indicate use of the compression method for the HTTP
-   request body by using the "Content-Encoding" header as follows:
-
-       Content-Encoding: web-stream-deflate
-
-   The server chooses one compression method from the offered ones and
-   notifies the chosen compression method with the "Content-Encoding"
-   header as follows:
-
-       Content-Encoding: web-stream-deflate
-
-   The server MAY also choose not to include the "Content-Encoding"
-   header to indicate that it rejects use of any compression method.
-
-   The client SHOULD NOT start streaming any data (with the request
-   body) before the client receives all the response headers from the
-   server, which concludes the negotiation process.
-
-7.3.  Valid UTF-8 Requirement
+7.1.  Valid UTF-8 Requirement
 
    In RFC6455, endpoints are required to _Fail the WebSocket Connection_
    when they find that the byte stream in a text message is not a valid
@@ -386,16 +270,17 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    frameworks check UTF-8 validness.  The contents of text messages of
    WiSH also MUST be a valid UTF-8 stream.  However, WiSH endpoints are
    not required to check UTF-8 validness.  This provides more
+   flexibility to server development.  For example, a server may choose
+   to check UTF-8 validness inside a JSON parser.
 
 
 
-Yoshino & Zhu            Expires October 1, 2017                [Page 7]
+
+
+Yoshino & Zhu           Expires September 2, 2017               [Page 5]
 
 Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
-
-   flexibility to server development.  For example, a server may choose
-   to check UTF-8 validness inside a JSON parser.
 
 8.  Acknowledgements
 
@@ -432,20 +317,23 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 9.2.  Non-normative References
 
-   [SSE]      WHATWG, "HTML Living Standard", October 2016,
-              <https://html.spec.whatwg.org/multipage/comms.html>.
+   [SSE]      WHATWG, "HTML Living Standard - Server-sent events", May
+              2017, <https://html.spec.whatwg.org/multipage/comms.html
+              #server-sent-events>.
 
-   [Fetch]    WHATWG, "Fetch Standard", October 2016,
+   [Fetch]    WHATWG, "Fetch Living Standard", May 2017,
               <https://fetch.spec.whatwg.org/>.
 
-   [Streams]  WHATWG, "Standard", October 2016,
+   [Streams]  WHATWG, "Streams Living Standard", April 2017,
               <https://streams.spec.whatwg.org/>.
 
 
 
 
 
-Yoshino & Zhu            Expires October 1, 2017                [Page 8]
+
+
+Yoshino & Zhu           Expires September 2, 2017               [Page 6]
 
 Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
@@ -455,10 +343,6 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
               Communication over the Web, and What's Missing", January
               2014, <https://github.com/bidiweb/bidiweb-semantics/blob/
               master/SurveyOfProtocolGaps.md>.
-
-   [BidiwebBinding]
-              Bidiweb, , "Issue about WiSH JavaScript binding", March
-              2017, <https://github.com/bidiweb/wish/issues/12>.
 
    [TransportAbstraction]
               Zhu, W., "http-transport-abstraction", July 2016,
@@ -501,4 +385,8 @@ Authors' Addresses
 
 
 
-Yoshino & Zhu            Expires October 1, 2017                [Page 9]
+
+
+
+
+Yoshino & Zhu           Expires September 2, 2017               [Page 7]
