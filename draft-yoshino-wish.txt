@@ -5,12 +5,12 @@
 Network Working Group                                         T. Yoshino
 Internet-Draft                                                    W. Zhu
 Intended status: Standards Track                            Google, Inc.
-Expires: September 2, 2017                                    March 2017
+Expires: November 11, 2017                                  May 10, 2017
 
 
  WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire
                             Protocols (HTTP)
-                         draft-yoshino-wish-02
+                         draft-yoshino-wish-03
 
 Abstract
 
@@ -36,7 +36,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on September 2, 2017.
+   This Internet-Draft will expire on November 11, 2017.
 
 Copyright Notice
 
@@ -53,9 +53,9 @@ Copyright Notice
 
 
 
-Yoshino & Zhu           Expires September 2, 2017               [Page 1]
+Yoshino & Zhu           Expires November 11, 2017               [Page 1]
 
-Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
+Internet-DrWiSH: A General Purpose Message Framing over Byte-   May 2017
 
 
    the Trust Legal Provisions and are provided without warranty as
@@ -109,9 +109,9 @@ Table of Contents
 
 
 
-Yoshino & Zhu           Expires September 2, 2017               [Page 2]
+Yoshino & Zhu           Expires November 11, 2017               [Page 2]
 
-Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
+Internet-DrWiSH: A General Purpose Message Framing over Byte-   May 2017
 
 
    starting message transmission before determining the final length of
@@ -165,9 +165,9 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
 
-Yoshino & Zhu           Expires September 2, 2017               [Page 3]
+Yoshino & Zhu           Expires November 11, 2017               [Page 3]
 
-Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
+Internet-DrWiSH: A General Purpose Message Framing over Byte-   May 2017
 
 
    Conformance requirements phrased as algorithms or specific steps can
@@ -221,9 +221,9 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
 
-Yoshino & Zhu           Expires September 2, 2017               [Page 4]
+Yoshino & Zhu           Expires November 11, 2017               [Page 4]
 
-Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
+Internet-DrWiSH: A General Purpose Message Framing over Byte-   May 2017
 
 
    The FIN bit together with the continuation frame opcode, payload
@@ -277,9 +277,9 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
 
-Yoshino & Zhu           Expires September 2, 2017               [Page 5]
+Yoshino & Zhu           Expires November 11, 2017               [Page 5]
 
-Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
+Internet-DrWiSH: A General Purpose Message Framing over Byte-   May 2017
 
 
    WiSH also MUST be a valid UTF-8 stream.  However, WiSH endpoints are
@@ -333,9 +333,9 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
 
-Yoshino & Zhu           Expires September 2, 2017               [Page 6]
+Yoshino & Zhu           Expires November 11, 2017               [Page 6]
 
-Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
+Internet-DrWiSH: A General Purpose Message Framing over Byte-   May 2017
 
 
    [BidiwebSurvey]
@@ -389,4 +389,4 @@ Authors' Addresses
 
 
 
-Yoshino & Zhu           Expires September 2, 2017               [Page 7]
+Yoshino & Zhu           Expires November 11, 2017               [Page 7]
