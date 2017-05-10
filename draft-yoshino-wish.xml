@@ -5,7 +5,7 @@
 <?rfc toc="yes" ?>
 <rfc
    category="std"
-   docName="draft-yoshino-wish-02"
+   docName="draft-yoshino-wish-03"
    ipr="trust200902">
   <front>
     <title>WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire Protocols (HTTP) </title>
@@ -27,7 +27,7 @@
         <email>wenboz@google.com</email>
       </address>
     </author>
-    <date month="March" year="2017"/>
+    <date month="May" year="2017"/>
     <abstract>
       <t>
         This document defines a general purpose message framing named WiSH which supports bi-directional (bidi) message-based communication over byte-stream oriented protocols such as HTTP (in its standard semantics).
