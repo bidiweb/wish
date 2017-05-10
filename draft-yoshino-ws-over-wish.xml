@@ -42,12 +42,7 @@
       </t>
 
       <t>
-        Once the WiSH idea is successfully adopted, binding to the WebSocket API could be introduced as further optimization for existing WebSocket users.
-      </t>
-
-      <t>
-        The JavaScript binding and wire protocol handshake with WebSocket port is future work.
-        Current thoughts are documented at <xref target="BidiwebBinding" />.
+        Once the WiSH idea is successfully adopted, binding to the WebSocket API <xref target="WSAPI" /> could be introduced as further optimization for existing WebSocket users.
       </t>
     </section>
 
@@ -73,7 +68,6 @@
 
       <t>
         The JavaScript binding and wire protocol handshake with WebSocket port is future work.
-        Current thoughts are documented at <xref target="BidiwebBinding" />.
       </t>
 
       <section title="Subprotocol Negotiation">
@@ -203,14 +197,6 @@
             <organization>WHATWG</organization>
           </author>
           <date month="May" year="2017" />
-        </front>
-      </reference>
-
-      <reference anchor="BidiwebBinding" target="https://github.com/bidiweb/wish/issues/12">
-        <front>
-          <title>Issue about WiSH JavaScript binding</title>
-          <author surname="Bidiweb"></author>
-          <date month="March" year="2017" />
         </front>
       </reference>
     </references>

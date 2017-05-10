@@ -5,7 +5,7 @@
 Network Working Group                                         T. Yoshino
 Internet-Draft                                                    W. Zhu
 Intended status: Standards Track                            Google, Inc.
-Expires: November 9, 2017                                    May 8, 2017
+Expires: November 11, 2017                                  May 10, 2017
 
 
                           WebSocket over WiSH
@@ -31,7 +31,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on November 9, 2017.
+   This Internet-Draft will expire on November 11, 2017.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Yoshino & Zhu           Expires November 9, 2017                [Page 1]
+Yoshino & Zhu           Expires November 11, 2017               [Page 1]
 
 Internet-Draft             WebSocket over WiSH                  May 2017
 
@@ -64,10 +64,10 @@ Table of Contents
    2.  Conformance Requirements and Terminology  . . . . . . . . . .   2
    3.  Content Negotiation and WebSocket Compatibility Consideration   2
      3.1.  Subprotocol Negotiation . . . . . . . . . . . . . . . . .   3
-     3.2.  Compression Negotiation . . . . . . . . . . . . . . . . .   4
+     3.2.  Compression Negotiation . . . . . . . . . . . . . . . . .   3
    4.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   4
-   5.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   5
-     5.1.  Normative References  . . . . . . . . . . . . . . . . . .   5
+   5.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     5.1.  Normative References  . . . . . . . . . . . . . . . . . .   4
      5.2.  Non-normative References  . . . . . . . . . . . . . . . .   5
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   5
 
@@ -77,12 +77,8 @@ Table of Contents
    yoshino-wish) and WebSocket.
 
    Once the WiSH idea is successfully adopted, binding to the WebSocket
-   API could be introduced as further optimization for existing
+   API [WSAPI] could be introduced as further optimization for existing
    WebSocket users.
-
-   The JavaScript binding and wire protocol handshake with WebSocket
-   port is future work.  Current thoughts are documented at
-   [BidiwebBinding].
 
 2.  Conformance Requirements and Terminology
 
@@ -105,18 +101,18 @@ Table of Contents
 
    In this section, we discuss how to bridge WiSH and WebSocket.
 
+   The JavaScript binding and wire protocol handshake with WebSocket
+   port is future work.
 
 
 
 
-Yoshino & Zhu           Expires November 9, 2017                [Page 2]
+
+
+Yoshino & Zhu           Expires November 11, 2017               [Page 2]
 
 Internet-Draft             WebSocket over WiSH                  May 2017
 
-
-   The JavaScript binding and wire protocol handshake with WebSocket
-   port is future work.  Current thoughts are documented at
-   [BidiwebBinding].
 
 3.1.  Subprotocol Negotiation
 
@@ -160,22 +156,19 @@ Internet-Draft             WebSocket over WiSH                  May 2017
    header value MAY differ between the HTTP request and HTTP response.
    This includes a combination of WiSH and non-WiSH media type.
 
-
-
-
-
-
-Yoshino & Zhu           Expires November 9, 2017                [Page 3]
-
-Internet-Draft             WebSocket over WiSH                  May 2017
-
-
 3.2.  Compression Negotiation
 
    When layered over HTTP, a client and server MAY choose to negotiate a
    compression to use by using the standard HTTP "Accept-Encoding" and
    "Content-Encoding" headers.  A client MAY list offered compression
    methods as follows:
+
+
+
+Yoshino & Zhu           Expires November 11, 2017               [Page 3]
+
+Internet-Draft             WebSocket over WiSH                  May 2017
+
 
        Accept-Encoding:
            web-stream-deflate;
@@ -216,16 +209,6 @@ Internet-Draft             WebSocket over WiSH                  May 2017
    document: Ben Christensen, Costin Manolache, Kari Hurtta, Loic
    Hoguin, Roberto Peon, Van Catha.
 
-
-
-
-
-
-Yoshino & Zhu           Expires November 9, 2017                [Page 4]
-
-Internet-Draft             WebSocket over WiSH                  May 2017
-
-
 5.  References
 
 5.1.  Normative References
@@ -234,6 +217,14 @@ Internet-Draft             WebSocket over WiSH                  May 2017
               Requirement Levels", BCP 14, RFC 2119, DOI 10.17487/
               RFC2119, March 1997,
               <http://www.rfc-editor.org/info/rfc2119>.
+
+
+
+
+Yoshino & Zhu           Expires November 11, 2017               [Page 4]
+
+Internet-Draft             WebSocket over WiSH                  May 2017
+
 
    [RFC6455]  Fette, I. and A. Melnikov, "The WebSocket Protocol", RFC
               6455, DOI 10.17487/RFC6455, December 2011,
@@ -244,10 +235,6 @@ Internet-Draft             WebSocket over WiSH                  May 2017
    [WSAPI]    WHATWG, "HTML Living Standard - Web sockets", May 2017,
               <https://html.spec.whatwg.org/multipage/
               comms.html#network>.
-
-   [BidiwebBinding]
-              Bidiweb, , "Issue about WiSH JavaScript binding", March
-              2017, <https://github.com/bidiweb/wish/issues/12>.
 
 Authors' Addresses
 
@@ -277,4 +264,17 @@ Authors' Addresses
 
 
 
-Yoshino & Zhu           Expires November 9, 2017                [Page 5]
+
+
+
+
+
+
+
+
+
+
+
+
+
+Yoshino & Zhu           Expires November 11, 2017               [Page 5]

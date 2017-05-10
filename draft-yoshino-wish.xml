@@ -206,7 +206,7 @@
       <t>
         The permessage-deflate extension <xref target="RFC7692" /> is defined for the WebSocket protocol, to add a compression mechanism to it.
         The permessage-deflate extension can be applied to WiSH.
-        The details are to be specified <xref target="BidiwebCompression" />.
+        The details are to be specified.
       </t>
 
       <t>
@@ -264,26 +264,6 @@
         </front>
       </reference>
 
-      <reference anchor="Fetch" target="https://fetch.spec.whatwg.org/">
-        <front>
-          <title>Fetch Living Standard</title>
-          <author>
-            <organization>WHATWG</organization>
-          </author>
-          <date month="May" year="2017" />
-        </front>
-      </reference>
-
-      <reference anchor="Streams" target="https://streams.spec.whatwg.org/">
-        <front>
-          <title>Streams Living Standard</title>
-          <author>
-            <organization>WHATWG</organization>
-          </author>
-          <date month="April" year="2017" />
-        </front>
-      </reference>
-
       <reference
           anchor="BidiwebSurvey"
           target="https://github.com/bidiweb/bidiweb-semantics/blob/master/SurveyOfProtocolGaps.md">
@@ -292,14 +272,6 @@
           <author initials="T." surname="Yoshino" fullname="Takeshi Yoshino"></author>
           <author initials="W." surname="Zhu" fullname="Wenbo Zhu"></author>
           <date month="January" year="2014" />
-        </front>
-      </reference>
-
-      <reference anchor="BidiwebCompression" target="https://github.com/bidiweb/wish/issues/8">
-        <front>
-          <title>Issue about WiSH Compression</title>
-          <author surname="Bidiweb"></author>
-          <date month="March" year="2017" />
         </front>
       </reference>
 

@@ -254,7 +254,7 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
    The permessage-deflate extension [RFC7692] is defined for the
    WebSocket protocol, to add a compression mechanism to it.  The
    permessage-deflate extension can be applied to WiSH.  The details are
-   to be specified [BidiwebCompression].
+   to be specified.
 
    What contents are exchanged and in what encoding they are exchanged
    over WiSH are to be defined by the application layer.
@@ -326,8 +326,8 @@ Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
               2017, <https://html.spec.whatwg.org/multipage/comms.html
               #server-sent-events>.
 
-   [Fetch]    WHATWG, "Fetch Living Standard", May 2017,
-              <https://fetch.spec.whatwg.org/>.
+
+
 
 
 
@@ -338,18 +338,11 @@ Yoshino & Zhu           Expires September 2, 2017               [Page 6]
 Internet-DraWiSH: A General Purpose Message Framing over Byt  March 2017
 
 
-   [Streams]  WHATWG, "Streams Living Standard", April 2017,
-              <https://streams.spec.whatwg.org/>.
-
    [BidiwebSurvey]
               Yoshino, T. and W. Zhu, "Non Request-Response
               Communication over the Web, and What's Missing", January
               2014, <https://github.com/bidiweb/bidiweb-semantics/blob/
               master/SurveyOfProtocolGaps.md>.
-
-   [BidiwebCompression]
-              Bidiweb, , "Issue about WiSH Compression", March 2017,
-              <https://github.com/bidiweb/wish/issues/8>.
 
    [TransportAbstraction]
               Zhu, W., "http-transport-abstraction", July 2016,
@@ -371,6 +364,13 @@ Authors' Addresses
    Google, Inc.
 
    Email: wenboz@google.com
+
+
+
+
+
+
+
 
 
 
