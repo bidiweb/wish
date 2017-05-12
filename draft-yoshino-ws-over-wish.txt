@@ -5,7 +5,7 @@
 Network Working Group                                         T. Yoshino
 Internet-Draft                                                    W. Zhu
 Intended status: Standards Track                            Google, Inc.
-Expires: November 11, 2017                                  May 10, 2017
+Expires: November 13, 2017                                  May 12, 2017
 
 
                           WebSocket over WiSH
@@ -31,7 +31,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on November 11, 2017.
+   This Internet-Draft will expire on November 13, 2017.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Yoshino & Zhu           Expires November 11, 2017               [Page 1]
+Yoshino & Zhu           Expires November 13, 2017               [Page 1]
 
 Internet-Draft             WebSocket over WiSH                  May 2017
 
@@ -102,14 +102,14 @@ Table of Contents
    In this section, we discuss how to bridge WiSH and WebSocket.
 
    The JavaScript binding and wire protocol handshake with WebSocket
-   port is future work.
+   port is future work.  Current thoughts are drafted at
+   [BidiwebWSOverWiSH]
 
 
 
 
 
-
-Yoshino & Zhu           Expires November 11, 2017               [Page 2]
+Yoshino & Zhu           Expires November 13, 2017               [Page 2]
 
 Internet-Draft             WebSocket over WiSH                  May 2017
 
@@ -165,7 +165,7 @@ Internet-Draft             WebSocket over WiSH                  May 2017
 
 
 
-Yoshino & Zhu           Expires November 11, 2017               [Page 3]
+Yoshino & Zhu           Expires November 13, 2017               [Page 3]
 
 Internet-Draft             WebSocket over WiSH                  May 2017
 
@@ -221,7 +221,7 @@ Internet-Draft             WebSocket over WiSH                  May 2017
 
 
 
-Yoshino & Zhu           Expires November 11, 2017               [Page 4]
+Yoshino & Zhu           Expires November 13, 2017               [Page 4]
 
 Internet-Draft             WebSocket over WiSH                  May 2017
 
@@ -235,6 +235,10 @@ Internet-Draft             WebSocket over WiSH                  May 2017
    [WSAPI]    WHATWG, "HTML Living Standard - Web sockets", May 2017,
               <https://html.spec.whatwg.org/multipage/
               comms.html#network>.
+
+   [BidiwebWSOverWiSH]
+              bidiweb, "WebSocket over WiSH", May 2017, <https://github
+              .com/bidiweb/wish/blob/master/ws-over-wish.md>.
 
 Authors' Addresses
 
@@ -273,8 +277,4 @@ Authors' Addresses
 
 
 
-
-
-
-
-Yoshino & Zhu           Expires November 11, 2017               [Page 5]
+Yoshino & Zhu           Expires November 13, 2017               [Page 5]

@@ -68,6 +68,7 @@
 
       <t>
         The JavaScript binding and wire protocol handshake with WebSocket port is future work.
+        Current thoughts are drafted at <xref target="BidiwebWSOverWiSH" />
       </t>
 
       <section title="Subprotocol Negotiation">
@@ -195,6 +196,16 @@
           <title>HTML Living Standard - Web sockets</title>
           <author>
             <organization>WHATWG</organization>
+          </author>
+          <date month="May" year="2017" />
+        </front>
+      </reference>
+
+      <reference anchor="BidiwebWSOverWiSH" target="https://github.com/bidiweb/wish/blob/master/ws-over-wish.md">
+        <front>
+          <title>WebSocket over WiSH</title>
+          <author>
+            <organization>bidiweb</organization>
           </author>
           <date month="May" year="2017" />
         </front>
