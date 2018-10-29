@@ -1,4 +1,4 @@
-# WiSH: WebSocket over HTT
+# WiSH
 
 * 2016 OSCON Talk: [Scalable bidirectional communication over the Web](https://cdn.oreillystatic.com/en/assets/1/event/154/Scalable%20bidirectional%20communication%20over%20the%20Web%20Presentation.pdf) 
 
