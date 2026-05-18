@@ -1,0 +1,560 @@
+
+
+
+
+Network Working Group                                         T. Yoshino
+Internet-Draft                                                          
+Intended status: Standards Track                                  W. Zhu
+Expires: 19 November 2026                                   Google, Inc.
+                                                             18 May 2026
+
+
+web-stream: A General Purpose Message Framing over Byte-Stream Oriented
+                             Wire Protocols
+                      draft-yoshino-web-stream-00
+
+Abstract
+
+   This document defines a general-purpose message framing named web-
+   stream, which supports message-based communication over any byte-
+   stream oriented L7 protocols, in particular HTTP (as in its standard
+   semantics [RFC9110]).
+
+   web-stream can be viewed as a binary alternative to the framing
+   defined for the server-sent events (SSE) [SSE].  This was the
+   original goal when the initial version of the proposal
+   [_yoshino-wish] was published in 2017.
+
+   For the rest of the document, we will use the term WiSH (i.e. Web in
+   Strict HTTP) to refer to the core use case behind this proposal, and
+   web-stream to refer to the web-stream framing format.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 19 November 2026.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+
+
+Yoshino & Zhu           Expires 19 November 2026                [Page 1]
+
+Internet-Draft  web-stream: A General Purpose Message Fr        May 2026
+
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Background  . . . . . . . . . . . . . . . . . . . . . . . . .   2
+   2.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3.  Conformance Requirements and Terminology  . . . . . . . . . .   3
+   4.  Web-Stream over HTTP  . . . . . . . . . . . . . . . . . . . .   4
+   5.  Framing . . . . . . . . . . . . . . . . . . . . . . . . . . .   4
+     5.1.  Payload length  . . . . . . . . . . . . . . . . . . . . .   5
+     5.2.  Fragmentation . . . . . . . . . . . . . . . . . . . . . .   5
+     5.3.  Payload Compression . . . . . . . . . . . . . . . . . . .   5
+     5.4.  Opcode  . . . . . . . . . . . . . . . . . . . . . . . . .   5
+   6.  Compression over HTTP . . . . . . . . . . . . . . . . . . . .   6
+     6.1.  General Guidelines about Compression  . . . . . . . . . .   6
+     6.2.  web-stream Compression  . . . . . . . . . . . . . . . . .   7
+       6.2.1.  Negotiation . . . . . . . . . . . . . . . . . . . . .   7
+       6.2.2.  Framing . . . . . . . . . . . . . . . . . . . . . . .   7
+       6.2.3.  Compression Methods other than DEFLATE  . . . . . . .   8
+   7.  UTF-8 Requirements  . . . . . . . . . . . . . . . . . . . . .   8
+   8.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .   8
+   9.  References  . . . . . . . . . . . . . . . . . . . . . . . . .   8
+     9.1.  Normative References  . . . . . . . . . . . . . . . . . .   8
+     9.2.  Informative References  . . . . . . . . . . . . . . . . .   9
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .   9
+
+1.  Background
+
+   There have been several attempts to improve message-based streaming
+   communication on the Web.
+
+   The server-sent events (SSE) [SSE] realized message-based streaming
+   communication in the server-to-client direction.  It introduced a new
+   Web API and a special message framing format while using HTTP as the
+   wire protocol.
+
+
+
+
+
+
+
+
+
+Yoshino & Zhu           Expires 19 November 2026                [Page 2]
+
+Internet-Draft  web-stream: A General Purpose Message Fr        May 2026
+
+
+   WebSockets realized native client-server full-duplex message-based
+   communication for the Web by introducing both a new Web API and a new
+   wire protocol (the WebSocket Protocol).  It has been implemented and
+   deployed widely, but the wire protocol is not compatible with the
+   broad HTTP ecosystem [BidiwebSurvey].  Intermediaries and frameworks
+   have to be upgraded to understand the wire protocol to support
+   WebSockets.
+
+   This Internet-Draft addresses the aforementioned problem space with a
+   solution fully compliant with standard HTTP semantics, informally
+   referred to as Web in Strict HTTP (WiSH).
+
+2.  Introduction
+
+   web-stream offers a general-purpose message framing for use over the
+   standard HTTP semantics to provide full-duplex messaging semantics.
+   The framing is compatible with the well-adopted and security-proven
+   base framing of the WebSocket Protocol [RFC6455].  The underlying
+   communication protocols providing the standard HTTP semantics can be
+   HTTP/1.1 [RFC7231], HTTP/2 [RFC7540], HTTP/3 [RFC9114], or any future
+   protocols.  The web-stream framing can also be used over any other
+   byte-stream oriented L7 protocols (over TCP or QUIC [QUIC]).
+
+   Transport protocol features such as multiplexing and session priority
+   are provided by the underlying L4 protocol [TransportAbstraction].
+
+   HTTP implementations may not allow earlier 2xx responses [RFC7540],
+   especially when HTTP/1.1 is used as the underlying transport.  In
+   such cases, parallel HTTP requests may be used to support full-duplex
+   messaging between the client and server.  Separately, when HTTP body
+   streaming is unsupported by the Web client [FetchBody] or blocked by
+   intermediaries, multiple short-lived HTTP requests may be used to
+   send messages between the client and server.
+
+   web-stream complies with the HTTP semantics (as opposed to turning it
+   to a transport protocol).  Consequently, while it utilizes the base
+   framing of the WebSocket Protocol, it drops the opening handshake and
+   the closing handshake.
+
+3.  Conformance Requirements and Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
+
+
+
+
+
+
+Yoshino & Zhu           Expires 19 November 2026                [Page 3]
+
+Internet-Draft  web-stream: A General Purpose Message Fr        May 2026
+
+
+   Requirements phrased in the imperative as part of algorithms (such as
+   "strip any leading space characters" or "return false and abort these
+   steps") are to be interpreted with the meaning of the key word
+   ("MUST", "SHOULD", "MAY", etc.) used in introducing the algorithm.
+
+   Conformance requirements phrased as algorithms or specific steps can
+   be implemented in any manner, so long as the end result is
+   equivalent.
+
+   In particular, the algorithms defined in this specification are
+   intended to be easy to understand and are not intended to be
+   performant.
+
+4.  Web-Stream over HTTP
+
+   This section describes how to use web-stream over the HTTP semantics
+   [RFC9110].
+
+   To use web-stream for an HTTP request message or HTTP response
+   message, the content part (aka body part) MUST be a sequence of zero
+   or more web-stream frames defined in Section XXX.
+
+   The Content-Type header for an HTTP message using web-stream MUST be
+   set to the web-stream media type, application/web-stream, which
+   includes an optional message parameter.
+
+   Example:
+
+   Content-Type: application/web-stream; message="application/json"
+
+   The message parameter specifies the content type and encoding of the
+   data exchanged within the payload of the web-stream messages.
+
+   The standard HTTP (REST) semantics should be followed, particularly
+   regarding the choice of the HTTP method.
+
+   Some HTTP semantics, such as the Cache-Control header, may not be
+   applicable when the HTTP body is streamed.  However, such a
+   limitation is not specific to web-stream.
+
+5.  Framing
+
+   The web-stream framing is largely compatible with the base framing
+   protocol of the WebSocket Protocol [RFC6455], though some fields are
+   used differently from the WebSocket Protocol.
+
+   A high-level overview of the framing is provided in the figure below.
+
+
+
+
+Yoshino & Zhu           Expires 19 November 2026                [Page 4]
+
+Internet-Draft  web-stream: A General Purpose Message Fr        May 2026
+
+
+     `0                   1                   2                   3`
+      `0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1`
+     `+-+-+-+-+-------+-+-------------+-------------------------------+`
+     `|F|C|0|0|opcode |0|Payload      |Extended payload length        |`
+     `|I|M| | |4 bit  | |length       |16 bit if payload length is 126|`
+     `|N|P| | |       | |7 bit        |64 bit if payload length is 127|`
+     `+-+-+-+-+-------+-+-------------+ - - - - - - - - - - - - - - - +`
+     `|                                                               |`
+     `+ - - - - - - - - - - - - - - - +-------------------------------+`
+     `|                               |Payload Data                   |`
+     `+-------------------------------+ - - - - - - - - - - - - - - - +`
+     `|                                                               |`
+     `+---------------------------------------------------------------+`
+
+5.1.  Payload length
+
+   The payload length and extended payload length fields are used to
+   determine the length of the Payload Data field of the frame,
+   following the exact mechanism used in the WebSocket Protocol.
+
+5.2.  Fragmentation
+
+   The FIN bit and the continuation frame opcode enable a fragmentation
+   mechanism, which is identical to that of the WebSocket Protocol.  One
+   or more continuous frames represent a web-stream message.  The FIN
+   bit indicates that the frame is the final frame of a web-stream
+   message.  For the second and following frames of a web-stream
+   message, the opcode field MUST be set to the continuation frame
+   opcode.
+
+   The mechanism allows for sending portions of a web-stream message
+   with a large payload before the total size of the message is known.
+
+5.3.  Payload Compression
+
+   web-stream defines the CMP bit as the second most significant bit of
+   the first octet of a frame.  The CMP bit in the first frame of a
+   message indicates whether that message's payload is compressed.  When
+   the message payload is compressed, the CMP bit of the first frame
+   MUST be set to 1; otherwise, it MUST be set to 0.  The CMP bit MUST
+   always be set to 0 for all non-first frames.  See Section XXX for
+   details of the payload compression.
+
+5.4.  Opcode
+
+   For the "opcode" field, web-stream uses the following opcodes:
+
+   *  %x0 denotes a continuation frame
+
+
+
+Yoshino & Zhu           Expires 19 November 2026                [Page 5]
+
+Internet-Draft  web-stream: A General Purpose Message Fr        May 2026
+
+
+   *  %x1 denotes the first frame of a text message
+
+   *  %x2 denotes the first frame of a binary message
+
+   *  %x3 denotes the first frame of a metadata message
+
+   *  %x9 denotes a ping
+
+   *  %xA denotes a pong
+
+   Any values not listed above are reserved.
+
+   The continuation frame, text message, and binary message opcode
+   retain the same meaning as the WebSocket Protocol.
+
+   web-stream introduces the metadata message opcode (%x3), which is
+   used for exchanging metadata.  When the opcode field of the first
+   frame is set to %x3, the message contains metadata.  The application-
+   level protocol determines the encoding of the payload of metadata
+   messages.  Support for metadata is optional; web-stream
+   implementations that do not support or consume metadata messages MAY
+   discard them.  The WebSocket Protocol's connection close frame opcode
+   (%x8) is dropped for web-stream.  The ping (%x9) and pong (%xA)
+   control frames are retained from the WebSocket Protocol. web-stream
+   endpoints MAY alternatively rely on keep-alive mechanisms provided by
+   the underlying transport.
+
+6.  Compression over HTTP
+
+6.1.  General Guidelines about Compression
+
+   For short-lived streaming, the content codings (aka HTTP body
+   compression) MAY be applied in the underlying HTTP semantics layer
+   for web-stream as specified in Section 8.4.  Content-Encoding of
+   [RFC9110].  This is transparent to the web-stream framing and should
+   perform well for short-lived streaming.
+
+   For long-lived streaming, some compression mechanisms like Per-
+   message Compression for WebSocket (PMCE) [RFC7692] may provide better
+   performance.  Standardization of such a mechanism with web--stream is
+   planned for the future.  For now, experimental implementations may
+   port PMCE to web-stream as described in this section.  We call this
+   web-stream compression.
+
+   It's RECOMMENDED that web-stream implementations coordinate with the
+   underlying HTTP semantics layer to decide whether to enable the web-
+   stream compression.  Only either of the web-stream compression or
+   content coding should be enabled to avoid double compressing data.
+
+
+
+Yoshino & Zhu           Expires 19 November 2026                [Page 6]
+
+Internet-Draft  web-stream: A General Purpose Message Fr        May 2026
+
+
+6.2.  web-stream Compression
+
+   [RFC7692] defined a general framework on how to implement a message-
+   oriented compression for [RFC6455] using its extension framework.
+   This is named Per-message Compression for WebSocket (PMCE).  The web-
+   stream compression is an adaptation (port) of PMCE for web-stream.
+
+6.2.1.  Negotiation
+
+   Enabling the web-stream compression requires the participating
+   endpoints to perform the extension negotiation defined in [RFC7692]
+   through the headers of the HTTP request message and HTTP response
+   message of the underlying HTTP semantics layer.  The name of the
+   header MUST be Web-Stream-Extensions instead of Sec-WebSocket-
+   Extensions.
+
+   Example negotiation:
+
+   The client includes the following header in the HTTP request message
+   to offer use of a compression that is equivalent to the permessage-
+   deflate PMCE for the WebSocket Protocol.
+
+   Web-Stream-Extensions: permessage-deflate
+
+   Some parameters can be added to the permessage-deflate entry as
+   follows:
+
+   Web-Stream-Extensions: permessage-deflate; client_max_window_bits=10
+
+   The server includes the following header in the HTTP response message
+   to accept use of the compression as follows:
+
+   Web-Stream-Extensions: permessage-deflate
+
+6.2.2.  Framing
+
+   web-stream compression uses the second significant bit of the first
+   octet of a frame to indicate whether the message payload is
+   compressed.  It's named "Per-Message Compressed" bit in the PMCE
+   specification.  In the web-stream framing, this bit is named the *CMP
+   bit*.
+
+   When the CMP bit is set on the first frame of a message, the message
+   payload MUST be compressed.
+
+
+
+
+
+
+
+Yoshino & Zhu           Expires 19 November 2026                [Page 7]
+
+Internet-Draft  web-stream: A General Purpose Message Fr        May 2026
+
+
+6.2.3.  Compression Methods other than DEFLATE
+
+   In addition to DEFLATE, web-stream compression variants for other
+   compression algorithms such as Zstandard can be defined.
+
+7.  UTF-8 Requirements
+
+   The WebSocket Protocol [RFC6455] requires endpoints to _Fail the
+   WebSocket Connection_ when they encounter an invalid UTF-8 byte
+   stream in a text message.  Consequently, [RFC6455] server frameworks
+   typically check for UTF-8 validity.
+
+   In contrast, the contents of web-stream text messages also MUST be a
+   valid UTF-8 stream, but web-stream endpoints are not REQUIRED to
+   perform UTF-8 validation.  This omission offers greater flexibility
+   to server development, for example, a server may opt to perform the
+   UTF-8 validity check within a JSON parser.
+
+8.  Acknowledgements
+
+   We are grateful for the feedback received on the original version of
+   this draft [_yoshino-wish] from the IETF BiDirectional or Server-
+   Initiated HTTP (hybi) Working Group
+   (https://datatracker.ietf.org/wg/hybi/about/) and the IETF HTTP
+   Working Group (https://httpwg.org/) during 2016-2017.
+
+9.  References
+
+9.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/info/rfc2119>.
+
+   [RFC6455]  Fette, I. and A. Melnikov, "The WebSocket Protocol",
+              RFC 6455, DOI 10.17487/RFC6455, December 2011,
+              <https://www.rfc-editor.org/info/rfc6455>.
+
+   [RFC7231]  Fielding, R., Ed. and J. Reschke, Ed., "Hypertext Transfer
+              Protocol (HTTP/1.1): Semantics and Content", RFC 7231,
+              DOI 10.17487/RFC7231, June 2014,
+              <https://www.rfc-editor.org/info/rfc7231>.
+
+   [RFC7540]  Belshe, M., Peon, R., and M. Thomson, Ed., "Hypertext
+              Transfer Protocol Version 2 (HTTP/2)", RFC 7540,
+              DOI 10.17487/RFC7540, May 2015,
+              <https://www.rfc-editor.org/info/rfc7540>.
+
+
+
+Yoshino & Zhu           Expires 19 November 2026                [Page 8]
+
+Internet-Draft  web-stream: A General Purpose Message Fr        May 2026
+
+
+   [RFC7692]  Yoshino, T., "Compression Extensions for WebSocket",
+              RFC 7692, DOI 10.17487/RFC7692, December 2015,
+              <https://www.rfc-editor.org/info/rfc7692>.
+
+   [RFC9110]  Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
+              Ed., "HTTP Semantics", STD 97, RFC 9110,
+              DOI 10.17487/RFC9110, June 2022,
+              <https://www.rfc-editor.org/info/rfc9110>.
+
+   [RFC9114]  Bishop, M., Ed., "HTTP/3", RFC 9114, DOI 10.17487/RFC9114,
+              June 2022, <https://www.rfc-editor.org/info/rfc9114>.
+
+9.2.  Informative References
+
+   [_yoshino-wish]
+              Yoshino, T. and W. Zhu, "WiSH: A General Purpose Message
+              Framing over Byte-Stream Oriented Wire Protocols (HTTP)",
+              I-D yoshino-wish, 2017,
+              <https://datatracker.ietf.org/doc/html/draft-yoshino-
+              wish>.
+
+   [FetchBody]
+              WHATWG, "Fetch Standard - body stream", n.d.,
+              <https://fetch.spec.whatwg.org/#concept-body-stream>.
+
+   [QUIC]     Iyengar, J. and M. Thomson, "QUIC: A UDP-Based Multiplexed
+              and Secure Transport", RFC 9000, May 2021,
+              <https://www.rfc-editor.org/rfc/rfc9000>.
+
+   [SSE]      WHATWG, "HTML Living Standard - Server-sent events", May
+              2017, <https://html.spec.whatwg.org/multipage/
+              comms.html#server-sent-events>.
+
+   [BidiwebSurvey]
+              Yoshino, T. and W. Zhu, "Non Request-Response
+              Communication over the Web, and What's Missing", January
+              2014, <https://github.com/bidiweb/bidiweb-
+              semantics/blob/master/SurveyOfProtocolGaps.md>.
+
+   [TransportAbstraction]
+              Zhu, W., "http-transport-abstraction", July 2016,
+              <https://github.com/bidiweb/http-transport-abstraction>.
+
+Authors' Addresses
+
+   Takeshi Yoshino
+   Email: tyoshino+ietf@starlancer.org
+
+
+
+
+Yoshino & Zhu           Expires 19 November 2026                [Page 9]
+
+Internet-Draft  web-stream: A General Purpose Message Fr        May 2026
+
+
+   Wenbo Zhu
+   Google, Inc.
+   Email: web@google.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Yoshino & Zhu           Expires 19 November 2026               [Page 10]
