@@ -1,6 +1,6 @@
 ---
 title: "web-stream: A General Purpose Message Framing over Byte-Stream Oriented Wire Protocols"
-docname: draft-yoshino-web-stream-00
+docname: draft-yoshino-wish-04
 
 ipr: trust200902
 cat: std
