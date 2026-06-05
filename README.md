@@ -6,3 +6,11 @@
 
 * 2018 O’Reilly Software Architecture Conference: [Embracing stateful client-server communication in the era of serverless functions
 ](https://docs.google.com/a/google.com/presentation/d/e/2PACX-1vRG5Ehjy1dPW0tX_ObXN6jaQLmBvdTQwhLYAhO2cTS9GHB3gh1QRaEXckVAG-ttpM7DSiUjfRfM7FPW/pub?start=false&loop=false&delayms=3000)
+
+# web-stream specification
+
+## Generate XML, HTML, and text file from .mkd file in the kramdown-rfc syntax
+
+1. Install https://github.com/cabo/kramdown-rfc by following https://rubygems.org/gems/kramdown-rfc/versions/1.7.38.
+1. Ensure you have the `docker` command available
+1. Run `make all`
