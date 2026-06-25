@@ -75,7 +75,7 @@ informative:
 
 --- abstract
 
-This document defines a general-purpose message framing named `web-stream`, which supports message-based communication over any byte-stream oriented L4 or L7 protocols, in particular HTTP (as in its standard semantics {{RFC9110}}).
+This document defines a general-purpose message framing named `web-stream`, which supports message-based communication over any byte-stream oriented L4 or L7 protocols, in particular HTTP as in its standard semantics {{RFC9110}}.
 
 `web-stream` can be viewed as a binary alternative to the framing defined for the server-sent events (SSE) {{SSE}}. This was the original goal when the initial version of the proposal {{-yoshino-wish}} was published in 2017\.
 
@@ -133,9 +133,9 @@ Example:
 
 The `message` parameter specifies the content type of the `web-stream` message payload.
 
-The standard HTTP semantics should be followed, particularly regarding the choice of the HTTP method and Entity headers.
+The standard HTTP semantics should be followed, particularly regarding the choice of HTTP method and Entity headers.
 
-Some HTTP semantics, such as `Cache-Control`, may not be applicable when the HTTP body is streamed to the application. However, such limitations are not specific to the `web-stream` framing. It's also possible to use `web-stream` without application-level streaming, for example, sending batched messages over HTTP. 
+Some HTTP semantics, such as `Cache-Control`, may not be applicable when the HTTP body is streamed to the application. However, such limitations are not specific to the `web-stream` framing. It's also possible to use `web-stream` without application-level streaming, for example, to send batched messages over HTTP. 
 
 
 Framing
@@ -196,7 +196,7 @@ For the "opcode" field, `web-stream` uses the following opcodes:
 
 Any values not listed above are reserved.
 
-The continuation frame, text message, and binary message opcode retain the same meaning as the WebSocket Protocol.
+The continuation frame, text message, and binary message opcode retain the same meaning as defined for the WebSocket protocol.
 
 `web-stream` introduces the metadata message opcode (%x3), which is used for exchanging in-stream metadata between the client and server. When the opcode field of the first frame is set to %x3, the message contains metadata. The application-level protocol determines the encoding of the metadata message payload. Support for metadata is optional; `web-stream` implementations that do not support or consume metadata messages MAY discard them. We don't expect the websocket wire protocol to be updated in future with regards to new opcodes.
 
@@ -211,7 +211,7 @@ General Guidelines about Compression
 
 For short-lived streaming, the content codings (aka HTTP body compression) MAY be applied in the underlying HTTP layer for `web-stream` as specified in Section 8.4. Content-Encoding of {{RFC9110}}. This is transparent to the `web-stream` framing and should perform well for short-lived streaming.
 
-For long-lived streaming, some compression mechanisms like Per-message Compression for WebSocket (PMCE) {{RFC7692}} may provide better performance. Implementations may port PMCE to `web-stream` as described in the following section.
+For long-lived streaming, Per-message Compression for WebSocket (PMCE) {{RFC7692}} may provide better performance. Implementations may port PMCE to `web-stream` as described in the following section.
 
 `web-stream` compression and HTTP compression SHOULD NOT be enabled at the same time to avoid double compression.
 
@@ -224,11 +224,11 @@ For long-lived streaming, some compression mechanisms like Per-message Compressi
 
 ### Negotiation
 
-Enabling the `web-stream` compression requires the participating endpoints to perform the extension negotiation defined in {{RFC7692}} through the headers of the HTTP request message and HTTP response message of the underlying HTTP semantics layer. The name of the header MUST be `Web-Stream-Extensions` instead of `Sec-WebSocket-Extensions`.
+Enabling the `web-stream` compression requires the participating endpoints to perform the extension negotiation defined in {{RFC7692}} through HTTP request and response headers. The name of the header MUST be `Web-Stream-Extensions` instead of `Sec-WebSocket-Extensions`.
 
 Example negotiation: 
 
-The client includes the following header in the HTTP request message to offer use of a compression that is equivalent to the `permessage-deflate` PMCE for the WebSocket Protocol.
+The client includes the following header in HTTP request to offer use of a compression that is equivalent to the `permessage-deflate` PMCE for the WebSocket Protocol.
 
 `Web-Stream-Extensions: permessage-deflate`
 
@@ -236,7 +236,7 @@ Some parameters can be added to the `permessage-deflate` entry as follows:
 
 `Web-Stream-Extensions: permessage-deflate; client_max_window_bits=10`
 
-The server includes the following header in the HTTP response message to accept use of the compression as follows:
+The server includes the following header in HTTP response to accept use of the compression as follows:
 
 `Web-Stream-Extensions: permessage-deflate`
 
@@ -250,7 +250,7 @@ When the CMP bit is set on the first frame of a message, the message payload MUS
 
 ### Compression Methods other than DEFLATE
 
-In addition to DEFLATE, the only compression algorithm supported by WebSocket, `web-stream` may support other compression algorithms such as Zstandard in future.
+In addition to DEFLATE, the only compression algorithm supported by WebSocket, `web-stream` may support other compression algorithms such as Zstandard. A dedicated I-D is planned for web-stream compression.
 
 
 UTF-8 Requirements
