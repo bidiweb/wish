@@ -103,7 +103,7 @@ Transport-level features such as multiplexing and session priority are provided 
 
 HTTP implementations may not allow earlier 2xx responses {{RFC7540}}, especially when HTTP/1.1 is used as the underlying byte-stream protocol. In such cases, parallel HTTP requests may be used to support full-duplex messaging between the client and server. Separately, when HTTP body streaming is unsupported by the Web client {{FetchBody}} or blocked by intermediaries, multiple short-lived HTTP requests may be used to send messages between the client and server. 
 
-`web-stream` strictly complies with the HTTP semantics. Consequently, while it utilizes the base framing of the WebSocket Protocol, it drops the opening handshake and the closing handshake. 
+`web-stream` strictly complies with the HTTP semantics. Consequently, while `web-stream` utilizes the base framing of the WebSocket Protocol, `web-stream` drops the opening handshake and the closing handshake of the WebSocket Protocol. 
 
 
 Conformance Requirements and Terminology
@@ -196,9 +196,11 @@ For the "opcode" field, `web-stream` uses the following opcodes:
 
 Any values not listed above are reserved.
 
-The continuation frame, text message, and binary message opcode retain the same meaning as defined for the WebSocket protocol.
+The opcodes for continuation frames, text messages, and binary messages are identical to those specified in the WebSocket Protocol.
 
-`web-stream` introduces the metadata message opcode (%x3), which is used for exchanging in-stream metadata between the client and server. When the opcode field of the first frame is set to %x3, the message contains metadata. The application-level protocol determines the encoding of the metadata message payload. Support for metadata is optional; `web-stream` implementations that do not support or consume metadata messages MAY discard them. We don't expect the websocket wire protocol to be updated in future with regards to new opcodes.
+`web-stream` introduces the metadata message opcode (%x3), which is used for exchanging in-stream metadata between the client and server. When the opcode field of the first frame is set to %x3, the message contains metadata. The application-level protocol determines the encoding of the metadata message payload. Support for metadata is optional; `web-stream` implementations that do not support or consume metadata messages MAY discard them. 
+
+We don't expect the WebSocket Protocol to introduce any new opcodes in future.
 
 The WebSocket Protocol's connection close frame opcode (%x8) is ignored for `web-stream`. The ping (%x9) and pong (%xA) control frames are retained from the WebSocket Protocol. `web-stream` endpoints MAY alternatively rely on keep-alive mechanisms provided by the underlying transport.
 
@@ -219,7 +221,7 @@ For long-lived streaming, Per-message Compression for WebSocket (PMCE) {{RFC7692
 `web-stream` Compression
 ------------------------
 
-{{RFC7692}} defined a general framework on how to implement a message-oriented compression for {{RFC6455}} using its extension framework. This is named Per-message Compression for WebSocket (PMCE). The `web-stream` compression is an adaptation (port) of PMCE for `web-stream`.
+{{RFC7692}} defined a general framework on how to implement message-oriented compression for {{RFC6455}} using its extension framework. This is named Per-message Compression for WebSocket (PMCE). The `web-stream` compression is an adaptation (port) of PMCE for `web-stream`.
 
 
 ### Negotiation
@@ -250,7 +252,9 @@ When the CMP bit is set on the first frame of a message, the message payload MUS
 
 ### Compression Methods other than DEFLATE
 
-In addition to DEFLATE, the only compression algorithm supported by WebSocket, `web-stream` may support other compression algorithms such as Zstandard. A dedicated I-D is planned for web-stream compression.
+In addition to DEFLATE, the only compression algorithm supported by WebSocket, `web-stream` may support other compression algorithms such as Zstandard. 
+
+A dedicated I-D may be published for `web-stream` compression in future.
 
 
 UTF-8 Requirements
