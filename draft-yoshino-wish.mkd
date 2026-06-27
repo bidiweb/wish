@@ -2,6 +2,7 @@
 title: "web-stream: A General Purpose Message Framing over Byte-Stream Oriented Wire Protocols"
 docname: draft-yoshino-wish-04
 
+submissionType: IETF
 ipr: trust200902
 cat: std
 
@@ -22,17 +23,6 @@ normative:
   RFC9114:
 
 informative:
-  -yoshino-wish:
-    title: " WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire Protocols (HTTP)"
-    target: https://datatracker.ietf.org/doc/html/draft-yoshino-wish
-    author:
-    - ins: T. Yoshino
-      name: Takeshi Yoshino
-    - ins: W. Zhu
-      name: Wenbo Zhu
-    date: 2017
-    seriesinfo:
-      I-D: yoshino-wish
   FetchBody:
     title: "Fetch Standard - body stream"
     target: https://fetch.spec.whatwg.org/#concept-body-stream
@@ -80,13 +70,16 @@ informative:
       ins: W. Zhu
       name: Wenbo Zhu
     date: July 2016
+  WebStreamReferecenImplementation:
+    title: "web-stream reference implementation in C++"
+    target: https://github.com/bidiweb/web-stream-reference-implementation
 
 
 --- abstract
 
 This document defines a general-purpose message framing named `web-stream`, which supports message-based communication over any byte-stream oriented L4 or L7 protocols, in particular HTTP as in its standard semantics {{RFC9110}}.
 
-`web-stream` can be viewed as a binary alternative to the framing defined for the server-sent events (SSE) {{SSE}}. This was the original goal when the initial version of the proposal {{-yoshino-wish}} was published in 2017\.
+`web-stream` can be viewed as a binary alternative to the framing defined for the server-sent events (SSE) {{SSE}}. This was the original goal when the initial version of this proposal was published in 2017\.
 
 
 --- middle
@@ -132,7 +125,7 @@ Web-Stream over HTTP
 
 This section describes how to use `web-stream` over HTTP {{RFC9110}}.
 
-To use `web-stream` with an HTTP request or response, the content part (aka body part) MUST be a sequence of zero or more `web-stream` frames defined in Section Framing.
+To use `web-stream` with an HTTP request or response, the content part (aka body part) MUST be a sequence of zero or more `web-stream` frames defined in {{framing}}.
 
 The `Content-Type` header for an HTTP request or response using `web-stream` MUST be set to the `web-stream` media type, `application/web-stream`, which includes an optional `message` parameter.
 
@@ -188,7 +181,7 @@ The mechanism allows for sending portions of a `web-stream` message with a large
 Payload Compression
 -------------------
 
-`web-stream` defines the CMP bit as the second most significant bit of the first octet of a frame. The CMP bit in the first frame of a message indicates whether that message's payload is compressed. When the message payload is compressed, the CMP bit of the first frame MUST be set to 1; otherwise, it MUST be set to 0\. The CMP bit MUST always be set to 0 for all non-first frames. See Section Compression over HTTP for details of the payload compression.
+`web-stream` defines the CMP bit as the second most significant bit of the first octet of a frame. The CMP bit in the first frame of a message indicates whether that message's payload is compressed. When the message payload is compressed, the CMP bit of the first frame MUST be set to 1; otherwise, it MUST be set to 0\. The CMP bit MUST always be set to 0 for all non-first frames. See {{compression}} for details of the payload compression.
 
 
 Opcode
@@ -214,7 +207,7 @@ We don't expect the WebSocket Protocol to introduce any new opcodes in future.
 The WebSocket Protocol's connection close frame opcode (%x8) is ignored for `web-stream`. The ping (%x9) and pong (%xA) control frames are retained from the WebSocket Protocol. `web-stream` endpoints MAY alternatively rely on keep-alive mechanisms provided by the underlying transport.
 
 
-Compression over HTTP
+Compression over HTTP {#compression}
 =====================
 
 General Guidelines about Compression
@@ -277,4 +270,4 @@ In contrast, the contents of `web-stream` text messages also MUST be a valid UTF
 Acknowledgements
 ================
 
-We are grateful for the feedback received on the original version of this draft {{-yoshino-wish}} from the [IETF BiDirectional or Server-Initiated HTTP (hybi) Working Group](https://datatracker.ietf.org/wg/hybi/about/) and [the IETF HTTP Working Group](https://httpwg.org/) during 2016-2017.
+We are grateful for the feedback received on the original version of this draft from the [IETF BiDirectional or Server-Initiated HTTP (hybi) Working Group](https://datatracker.ietf.org/wg/hybi/about/) and [the IETF HTTP Working Group](https://httpwg.org/) during 2016-2017.

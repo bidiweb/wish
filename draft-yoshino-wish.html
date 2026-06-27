@@ -8,9 +8,8 @@
 <meta content="Takeshi Yoshino" name="author">
 <meta content="Wenbo Zhu" name="author">
 <meta content="
-       This document defines a general-purpose message framing named  web-stream , which supports message-based communication over any byte-stream oriented L7 protocols, in particular HTTP (as in its standard semantics  ). 
-       web-stream  can be viewed as a binary alternative to the framing defined for the server-sent events (SSE)  . This was the original goal when the initial version of the proposal   was published in 2017. 
-       For the rest of the document, we will use the term WiSH (i.e. Web in Strict HTTP) to refer to the core use case behind this proposal, and  web-stream  to refer to the  web-stream  framing format. 
+       This document defines a general-purpose message framing named  web-stream , which supports message-based communication over any byte-stream oriented L4 or L7 protocols, in particular HTTP as in its standard semantics  . 
+       web-stream  can be viewed as a binary alternative to the framing defined for the server-sent events (SSE)  . This was the original goal when the initial version of this proposal was published in 2017. 
     " name="description">
 <meta content="xml2rfc 3.32.0" name="generator">
 <meta content="draft-yoshino-wish-04" name="ietf.draft">
@@ -1217,11 +1216,11 @@ li > p:last-of-type:only-child {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">web-stream: A General Purpose Message Fr</td>
-<td class="right">May 2026</td>
+<td class="right">June 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Yoshino &amp; Zhu</td>
-<td class="center">Expires 19 November 2026</td>
+<td class="center">Expires 29 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1234,12 +1233,12 @@ li > p:last-of-type:only-child {
 <dd class="internet-draft">draft-yoshino-wish-04</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-05-18" class="published">18 May 2026</time>
+<time datetime="2026-06-27" class="published">27 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-11-19">19 November 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-29">29 December 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1255,9 +1254,8 @@ li > p:last-of-type:only-child {
 <h1 id="title">web-stream: A General Purpose Message Framing over Byte-Stream Oriented Wire Protocols</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document defines a general-purpose message framing named <code>web-stream</code>, which supports message-based communication over any byte-stream oriented L7 protocols, in particular HTTP (as in its standard semantics <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>).<a href="#section-abstract-1" class="pilcrow">¶</a></p>
-<p id="section-abstract-2"><code>web-stream</code> can be viewed as a binary alternative to the framing defined for the server-sent events (SSE) <span>[<a href="#SSE" class="cite xref">SSE</a>]</span>. This was the original goal when the initial version of the proposal <span>[<a href="#_yoshino-wish" class="cite xref">_yoshino-wish</a>]</span> was published in 2017.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
-<p id="section-abstract-3">For the rest of the document, we will use the term WiSH (i.e. Web in Strict HTTP) to refer to the core use case behind this proposal, and <code>web-stream</code> to refer to the <code>web-stream</code> framing format.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document defines a general-purpose message framing named <code>web-stream</code>, which supports message-based communication over any byte-stream oriented L4 or L7 protocols, in particular HTTP as in its standard semantics <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2"><code>web-stream</code> can be viewed as a binary alternative to the framing defined for the server-sent events (SSE) <span>[<a href="#SSE" class="cite xref">SSE</a>]</span>. This was the original goal when the initial version of this proposal was published in 2017.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1278,7 +1276,7 @@ li > p:last-of-type:only-child {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 19 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 29 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1390,7 +1388,7 @@ li > p:last-of-type:only-child {
 <p id="section-1-1">There have been several attempts to improve message-based streaming communication on the Web.<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">The server-sent events (SSE) <span>[<a href="#SSE" class="cite xref">SSE</a>]</span> realized message-based streaming communication in the server-to-client direction. It introduced a new Web API and a special message framing format while using HTTP as the wire protocol.<a href="#section-1-2" class="pilcrow">¶</a></p>
 <p id="section-1-3">WebSockets realized native client-server full-duplex message-based communication for the Web by introducing both a new Web API and a new wire protocol (the WebSocket Protocol). It has been implemented and deployed widely, but the wire protocol is not compatible with the broad HTTP ecosystem <span>[<a href="#BidiwebSurvey" class="cite xref">BidiwebSurvey</a>]</span>. Intermediaries and frameworks have to be upgraded to understand the wire protocol to support WebSockets.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">This Internet-Draft addresses the aforementioned problem space with a solution fully compliant with standard HTTP semantics, informally referred to as Web in Strict HTTP (WiSH).<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-4">This Internet-Draft addresses the aforementioned problem space with a solution fully compliant with the standard HTTP semantics, informally referred to as Web in Strict HTTP (WiSH).<a href="#section-1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="introduction">
@@ -1398,10 +1396,10 @@ li > p:last-of-type:only-child {
       <h2 id="name-introduction">
 <a href="#section-2" class="section-number selfRef">2. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-2-1"><code>web-stream</code> offers a general-purpose message framing for use over the standard HTTP semantics to provide full-duplex messaging semantics. The framing is compatible with the well-adopted and security-proven base framing of the WebSocket Protocol <span>[<a href="#RFC6455" class="cite xref">RFC6455</a>]</span>. The underlying communication protocols providing the standard HTTP semantics can be HTTP/1.1 <span>[<a href="#RFC7231" class="cite xref">RFC7231</a>]</span>, HTTP/2 <span>[<a href="#RFC7540" class="cite xref">RFC7540</a>]</span>, HTTP/3 <span>[<a href="#RFC9114" class="cite xref">RFC9114</a>]</span>, or any future protocols. The <code>web-stream</code> framing can also be used over any other byte-stream oriented L7 protocols (over TCP or QUIC <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>).<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">Transport protocol features such as multiplexing and session priority are provided by the underlying L4 protocol <span>[<a href="#TransportAbstraction" class="cite xref">TransportAbstraction</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
-<p id="section-2-3">HTTP implementations may not allow earlier 2xx responses <span>[<a href="#RFC7540" class="cite xref">RFC7540</a>]</span>, especially when HTTP/1.1 is used as the underlying transport. In such cases, parallel HTTP requests may be used to support full-duplex messaging between the client and server. Separately, when HTTP body streaming is unsupported by the Web client <span>[<a href="#FetchBody" class="cite xref">FetchBody</a>]</span> or blocked by intermediaries, multiple short-lived HTTP requests may be used to send messages between the client and server.<a href="#section-2-3" class="pilcrow">¶</a></p>
-<p id="section-2-4"><code>web-stream</code> complies with the HTTP semantics (as opposed to turning it to a transport protocol). Consequently, while it utilizes the base framing of the WebSocket Protocol, it drops the opening handshake and the closing handshake.<a href="#section-2-4" class="pilcrow">¶</a></p>
+<p id="section-2-1"><code>web-stream</code> offers a general-purpose message framing over a byte-stream. The framing is compatible with the well-adopted and security-proven base framing of the WebSocket Protocol <span>[<a href="#RFC6455" class="cite xref">RFC6455</a>]</span>. The underlying communication protocols providing the standard HTTP semantics can be HTTP/1.1 <span>[<a href="#RFC7231" class="cite xref">RFC7231</a>]</span>, HTTP/2 <span>[<a href="#RFC7540" class="cite xref">RFC7540</a>]</span>, HTTP/3 <span>[<a href="#RFC9114" class="cite xref">RFC9114</a>]</span>. The <code>web-stream</code> framing can also be used over any other byte-stream oriented protocols (over TCP or QUIC <span>[<a href="#QUIC" class="cite xref">QUIC</a>]</span>).<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">Transport-level features such as multiplexing and session priority are provided by the underlying byte-stream protocol <span>[<a href="#TransportAbstraction" class="cite xref">TransportAbstraction</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">HTTP implementations may not allow earlier 2xx responses <span>[<a href="#RFC7540" class="cite xref">RFC7540</a>]</span> or full-duplex communication <span>[<a href="#FullDuplexHTTP" class="cite xref">FullDuplexHTTP</a>]</span>, especially when HTTP/1.1 is used as the underlying byte-stream protocol. In such cases, parallel HTTP requests may be used to support full-duplex messaging between the client and server. Separately, when HTTP body streaming is unsupported by the Web client <span>[<a href="#FetchBody" class="cite xref">FetchBody</a>]</span> or blocked by intermediaries, multiple short-lived HTTP requests may be used to send messages between the client and server.<a href="#section-2-3" class="pilcrow">¶</a></p>
+<p id="section-2-4"><code>web-stream</code> strictly complies with the HTTP semantics. Consequently, while <code>web-stream</code> utilizes the base framing of the WebSocket Protocol, <code>web-stream</code> drops the opening handshake and the closing handshake of the WebSocket Protocol.<a href="#section-2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conformance-requirements-and-terminology">
@@ -1420,14 +1418,14 @@ li > p:last-of-type:only-child {
       <h2 id="name-web-stream-over-http">
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-web-stream-over-http" class="section-name selfRef">Web-Stream over HTTP</a>
       </h2>
-<p id="section-4-1">This section describes how to use <code>web-stream</code> over the HTTP semantics <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>.<a href="#section-4-1" class="pilcrow">¶</a></p>
-<p id="section-4-2">To use <code>web-stream</code> for an HTTP request message or HTTP response message, the content part (aka body part) MUST be a sequence of zero or more <code>web-stream</code> frames defined in Section XXX.<a href="#section-4-2" class="pilcrow">¶</a></p>
-<p id="section-4-3">The <code>Content-Type</code> header for an HTTP message using <code>web-stream</code> MUST be set to the <code>web-stream</code> media type, <code>application/web-stream</code>, which includes an optional <code>message</code> parameter.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-1">This section describes how to use <code>web-stream</code> over HTTP <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">To use <code>web-stream</code> with an HTTP request or response, the content part (aka body part) MUST be a sequence of zero or more <code>web-stream</code> frames defined in <a href="#framing" class="auto internal xref">Section 5</a>.<a href="#section-4-2" class="pilcrow">¶</a></p>
+<p id="section-4-3">The <code>Content-Type</code> header for an HTTP request or response using <code>web-stream</code> MUST be set to the <code>web-stream</code> media type, <code>application/web-stream</code>, which includes an optional <code>message</code> parameter.<a href="#section-4-3" class="pilcrow">¶</a></p>
 <p id="section-4-4">Example:<a href="#section-4-4" class="pilcrow">¶</a></p>
 <p id="section-4-5"><code>Content-Type: application/web-stream; message="application/json"</code><a href="#section-4-5" class="pilcrow">¶</a></p>
-<p id="section-4-6">The <code>message</code> parameter specifies the content type and encoding of the data exchanged within the payload of the <code>web-stream</code> messages.<a href="#section-4-6" class="pilcrow">¶</a></p>
-<p id="section-4-7">The standard HTTP (REST) semantics should be followed, particularly regarding the choice of the HTTP method.<a href="#section-4-7" class="pilcrow">¶</a></p>
-<p id="section-4-8">Some HTTP semantics, such as the <code>Cache-Control</code> header, may not be applicable when the HTTP body is streamed. However, such a limitation is not specific to <code>web-stream</code>.<a href="#section-4-8" class="pilcrow">¶</a></p>
+<p id="section-4-6">The <code>message</code> parameter specifies the content type of the <code>web-stream</code> message payload.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<p id="section-4-7">The standard HTTP semantics should be followed, particularly regarding the choice of HTTP method and Entity headers.<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">Some HTTP semantics, such as <code>Cache-Control</code>, may not be applicable when the HTTP body is streamed to the application. However, such limitations are not specific to <code>web-stream</code>. It's also possible to use <code>web-stream</code> without application-level streaming, for example, to send batched messages over HTTP.<a href="#section-4-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="framing">
@@ -1435,7 +1433,7 @@ li > p:last-of-type:only-child {
       <h2 id="name-framing">
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-framing" class="section-name selfRef">Framing</a>
       </h2>
-<p id="section-5-1">The <code>web-stream</code> framing is largely compatible with the base framing protocol of the WebSocket Protocol <span>[<a href="#RFC6455" class="cite xref">RFC6455</a>]</span>, though some fields are used differently from the WebSocket Protocol.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-1">The <code>web-stream</code> framing is designed to be compatible with the base framing protocol of the WebSocket Protocol <span>[<a href="#RFC6455" class="cite xref">RFC6455</a>]</span>.<a href="#section-5-1" class="pilcrow">¶</a></p>
 <p id="section-5-2">A high-level overview of the framing is provided in the figure below.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5-3">
 <pre>
@@ -1476,7 +1474,7 @@ li > p:last-of-type:only-child {
         <h3 id="name-payload-compression">
 <a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-payload-compression" class="section-name selfRef">Payload Compression</a>
         </h3>
-<p id="section-5.3-1"><code>web-stream</code> defines the CMP bit as the second most significant bit of the first octet of a frame. The CMP bit in the first frame of a message indicates whether that message's payload is compressed. When the message payload is compressed, the CMP bit of the first frame MUST be set to 1; otherwise, it MUST be set to 0. The CMP bit MUST always be set to 0 for all non-first frames. See Section XXX for details of the payload compression.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-1"><code>web-stream</code> defines the CMP bit as the second most significant bit of the first octet of a frame. The CMP bit in the first frame of a message indicates whether that message's payload is compressed. When the message payload is compressed, the CMP bit of the first frame MUST be set to 1; otherwise, it MUST be set to 0. The CMP bit MUST always be set to 0 for all non-first frames. See <a href="#compression" class="auto internal xref">Section 6</a> for details of the payload compression.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="opcode">
@@ -1506,13 +1504,15 @@ li > p:last-of-type:only-child {
 </li>
         </ul>
 <p id="section-5.4-3">Any values not listed above are reserved.<a href="#section-5.4-3" class="pilcrow">¶</a></p>
-<p id="section-5.4-4">The continuation frame, text message, and binary message opcode retain the same meaning as the WebSocket Protocol.<a href="#section-5.4-4" class="pilcrow">¶</a></p>
-<p id="section-5.4-5"><code>web-stream</code> introduces the metadata message opcode (%x3), which is used for exchanging metadata. When the opcode field of the first frame is set to %x3, the message contains metadata. The application-level protocol determines the encoding of the payload of metadata messages. Support for metadata is optional; <code>web-stream</code> implementations that do not support or consume metadata messages MAY discard them. The WebSocket Protocol's connection close frame opcode (%x8) is dropped for <code>web-stream</code>. The ping (%x9) and pong (%xA) control frames are retained from the WebSocket Protocol. <code>web-stream</code> endpoints MAY alternatively rely on keep-alive mechanisms provided by the underlying transport.<a href="#section-5.4-5" class="pilcrow">¶</a></p>
+<p id="section-5.4-4">The opcodes for continuation frames, text messages, and binary messages are identical to those specified in the WebSocket Protocol.<a href="#section-5.4-4" class="pilcrow">¶</a></p>
+<p id="section-5.4-5"><code>web-stream</code> introduces the metadata message opcode (%x3), which is used for exchanging in-stream metadata between the client and server. When the opcode field of the first frame is set to %x3, the message contains metadata. The application-level protocol determines the encoding of the metadata message payload. Support for metadata is optional; <code>web-stream</code> implementations that do not support or consume metadata messages MAY discard them.<a href="#section-5.4-5" class="pilcrow">¶</a></p>
+<p id="section-5.4-6">We don't expect the WebSocket Protocol to introduce any new opcodes in future.<a href="#section-5.4-6" class="pilcrow">¶</a></p>
+<p id="section-5.4-7">The WebSocket Protocol's connection close frame opcode (%x8) is ignored for <code>web-stream</code>. The ping (%x9) and pong (%xA) control frames are retained from the WebSocket Protocol. <code>web-stream</code> endpoints MAY alternatively rely on keep-alive mechanisms provided by the underlying transport.<a href="#section-5.4-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
-<div id="compression-over-http">
+<div id="compression">
 <section id="section-6">
       <h2 id="name-compression-over-http">
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-compression-over-http" class="section-name selfRef">Compression over HTTP</a>
@@ -1522,9 +1522,9 @@ li > p:last-of-type:only-child {
         <h3 id="name-general-guidelines-about-co">
 <a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-general-guidelines-about-co" class="section-name selfRef">General Guidelines about Compression</a>
         </h3>
-<p id="section-6.1-1">For short-lived streaming, the content codings (aka HTTP body compression) MAY be applied in the underlying HTTP semantics layer for <code>web-stream</code> as specified in Section 8.4. Content-Encoding of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>. This is transparent to the <code>web-stream</code> framing and should perform well for short-lived streaming.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
-<p id="section-6.1-2">For long-lived streaming, some compression mechanisms like Per-message Compression for WebSocket (PMCE) <span>[<a href="#RFC7692" class="cite xref">RFC7692</a>]</span> may provide better performance. Standardization of such a mechanism with web--stream is planned for the future. For now, experimental implementations may port PMCE to <code>web-stream</code> as described in this section. We call this <code>web-stream</code> compression.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
-<p id="section-6.1-3">It's RECOMMENDED that <code>web-stream</code> implementations coordinate with the underlying HTTP semantics layer to decide whether to enable the <code>web-stream</code> compression. Only either of the <code>web-stream</code> compression or content coding should be enabled to avoid double compressing data.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+<p id="section-6.1-1">For short-lived streaming, the content codings (aka HTTP body compression) MAY be applied in the underlying HTTP layer for <code>web-stream</code> as specified in Section 8.4. Content-Encoding of <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>. This is transparent to the <code>web-stream</code> framing and should perform well for short-lived streaming.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.1-2">For long-lived streaming, Per-message Compression for WebSocket (PMCE) <span>[<a href="#RFC7692" class="cite xref">RFC7692</a>]</span> may provide better performance. Implementations may port PMCE to <code>web-stream</code> as described in the following section.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+<p id="section-6.1-3"><code>web-stream</code> compression and HTTP compression SHOULD NOT be enabled at the same time to avoid double compression.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="web-stream-compression">
@@ -1532,19 +1532,19 @@ li > p:last-of-type:only-child {
         <h3 id="name-web-stream-compression">
 <a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-web-stream-compression" class="section-name selfRef"><code>web-stream</code> Compression</a>
         </h3>
-<p id="section-6.2-1"><span>[<a href="#RFC7692" class="cite xref">RFC7692</a>]</span> defined a general framework on how to implement a message-oriented compression for <span>[<a href="#RFC6455" class="cite xref">RFC6455</a>]</span> using its extension framework. This is named Per-message Compression for WebSocket (PMCE). The <code>web-stream</code> compression is an adaptation (port) of PMCE for <code>web-stream</code>.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.2-1"><span>[<a href="#RFC7692" class="cite xref">RFC7692</a>]</span> defined a general framework on how to implement message-oriented compression for <span>[<a href="#RFC6455" class="cite xref">RFC6455</a>]</span> using its extension framework. This is named Per-message Compression for WebSocket (PMCE). The <code>web-stream</code> compression is an adaptation (port) of PMCE for <code>web-stream</code>.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <div id="negotiation">
 <section id="section-6.2.1">
           <h4 id="name-negotiation">
 <a href="#section-6.2.1" class="section-number selfRef">6.2.1. </a><a href="#name-negotiation" class="section-name selfRef">Negotiation</a>
           </h4>
-<p id="section-6.2.1-1">Enabling the <code>web-stream</code> compression requires the participating endpoints to perform the extension negotiation defined in <span>[<a href="#RFC7692" class="cite xref">RFC7692</a>]</span> through the headers of the HTTP request message and HTTP response message of the underlying HTTP semantics layer. The name of the header MUST be <code>Web-Stream-Extensions</code> instead of <code>Sec-WebSocket-Extensions</code>.<a href="#section-6.2.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.2.1-1">Enabling the <code>web-stream</code> compression requires the participating endpoints to perform the extension negotiation defined in <span>[<a href="#RFC7692" class="cite xref">RFC7692</a>]</span> through HTTP request and response headers. The name of the header MUST be <code>Web-Stream-Extensions</code> instead of <code>Sec-WebSocket-Extensions</code>.<a href="#section-6.2.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.2.1-2">Example negotiation:<a href="#section-6.2.1-2" class="pilcrow">¶</a></p>
-<p id="section-6.2.1-3">The client includes the following header in the HTTP request message to offer use of a compression that is equivalent to the <code>permessage-deflate</code> PMCE for the WebSocket Protocol.<a href="#section-6.2.1-3" class="pilcrow">¶</a></p>
+<p id="section-6.2.1-3">The client includes the following header in HTTP request to offer use of a compression that is equivalent to the <code>permessage-deflate</code> PMCE for the WebSocket Protocol.<a href="#section-6.2.1-3" class="pilcrow">¶</a></p>
 <p id="section-6.2.1-4"><code>Web-Stream-Extensions: permessage-deflate</code><a href="#section-6.2.1-4" class="pilcrow">¶</a></p>
 <p id="section-6.2.1-5">Some parameters can be added to the <code>permessage-deflate</code> entry as follows:<a href="#section-6.2.1-5" class="pilcrow">¶</a></p>
 <p id="section-6.2.1-6"><code>Web-Stream-Extensions: permessage-deflate; client_max_window_bits=10</code><a href="#section-6.2.1-6" class="pilcrow">¶</a></p>
-<p id="section-6.2.1-7">The server includes the following header in the HTTP response message to accept use of the compression as follows:<a href="#section-6.2.1-7" class="pilcrow">¶</a></p>
+<p id="section-6.2.1-7">The server includes the following header in HTTP response to accept use of the compression as follows:<a href="#section-6.2.1-7" class="pilcrow">¶</a></p>
 <p id="section-6.2.1-8"><code>Web-Stream-Extensions: permessage-deflate</code><a href="#section-6.2.1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1562,7 +1562,8 @@ li > p:last-of-type:only-child {
           <h4 id="name-compression-methods-other-t">
 <a href="#section-6.2.3" class="section-number selfRef">6.2.3. </a><a href="#name-compression-methods-other-t" class="section-name selfRef">Compression Methods other than DEFLATE</a>
           </h4>
-<p id="section-6.2.3-1">In addition to DEFLATE, <code>web-stream</code> compression variants for other compression algorithms such as Zstandard can be defined.<a href="#section-6.2.3-1" class="pilcrow">¶</a></p>
+<p id="section-6.2.3-1">In addition to DEFLATE, the only compression algorithm supported by WebSocket, <code>web-stream</code> may support other compression algorithms such as Zstandard.<a href="#section-6.2.3-1" class="pilcrow">¶</a></p>
+<p id="section-6.2.3-2">A dedicated I-D will be published for <code>web-stream</code> compression in future.<a href="#section-6.2.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1583,7 +1584,7 @@ li > p:last-of-type:only-child {
       <h2 id="name-acknowledgements">
 <a href="#section-8" class="section-number selfRef">8. </a><a href="#name-acknowledgements" class="section-name selfRef">Acknowledgements</a>
       </h2>
-<p id="section-8-1">We are grateful for the feedback received on the original version of this draft <span>[<a href="#_yoshino-wish" class="cite xref">_yoshino-wish</a>]</span> from the <a href="https://datatracker.ietf.org/wg/hybi/about/">IETF BiDirectional or Server-Initiated HTTP (hybi) Working Group</a> and <a href="https://httpwg.org/">the IETF HTTP Working Group</a> during 2016-2017.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<p id="section-8-1">We are grateful for the feedback received on the original version of this draft from the <a href="https://datatracker.ietf.org/wg/hybi/about/">IETF BiDirectional or Server-Initiated HTTP (hybi) Working Group</a> and <a href="https://httpwg.org/">the IETF HTTP Working Group</a> during 2016-2017.<a href="#section-8-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-combined-references">
@@ -1634,10 +1635,6 @@ li > p:last-of-type:only-child {
 <a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
-<dt id="_yoshino-wish">[_yoshino-wish]</dt>
-        <dd>
-<span class="refAuthor">Yoshino, T.</span> and <span class="refAuthor">W. Zhu</span>, <span class="refTitle">"WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire Protocols (HTTP)"</span>, <span class="seriesInfo">I-D yoshino-wish</span>, <time datetime="2017" class="refDate">2017</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-yoshino-wish">https://datatracker.ietf.org/doc/html/draft-yoshino-wish</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="FetchBody">[FetchBody]</dt>
         <dd>
 <span class="refAuthor">WHATWG</span>, <span class="refTitle">"Fetch Standard - body stream"</span>, <span>n.d.</span>, <span>&lt;<a href="https://fetch.spec.whatwg.org/#concept-body-stream">https://fetch.spec.whatwg.org/#concept-body-stream</a>&gt;</span>. </dd>
@@ -1650,13 +1647,21 @@ li > p:last-of-type:only-child {
         <dd>
 <span class="refAuthor">WHATWG</span>, <span class="refTitle">"HTML Living Standard - Server-sent events"</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://html.spec.whatwg.org/multipage/comms.html#server-sent-events">https://html.spec.whatwg.org/multipage/comms.html#server-sent-events</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="FullDuplexHTTP">[FullDuplexHTTP]</dt>
+        <dd>
+<span class="refAuthor">Zhu, W.</span> and <span class="refAuthor">M. Jennings</span>, <span class="refTitle">"Implications of Full-Duplex HTTP"</span>, <time datetime="2013-11" class="refDate">November 2013</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-zhu-http-fullduplex">https://datatracker.ietf.org/doc/html/draft-zhu-http-fullduplex</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="BidiwebSurvey">[BidiwebSurvey]</dt>
         <dd>
 <span class="refAuthor">Yoshino, T.</span> and <span class="refAuthor">W. Zhu</span>, <span class="refTitle">"Non Request-Response Communication over the Web, and What's Missing"</span>, <time datetime="2014-01" class="refDate">January 2014</time>, <span>&lt;<a href="https://github.com/bidiweb/bidiweb-semantics/blob/master/SurveyOfProtocolGaps.md">https://github.com/bidiweb/bidiweb-semantics/blob/master/SurveyOfProtocolGaps.md</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="TransportAbstraction">[TransportAbstraction]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Zhu, W.</span>, <span class="refTitle">"http-transport-abstraction"</span>, <time datetime="2016-07" class="refDate">July 2016</time>, <span>&lt;<a href="https://github.com/bidiweb/http-transport-abstraction">https://github.com/bidiweb/http-transport-abstraction</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="WebStreamReferecenImplementation">[WebStreamReferecenImplementation]</dt>
+      <dd>
+<span class="refTitle">"web-stream reference implementation in C++"</span>, <span>n.d.</span>, <span>&lt;<a href="https://github.com/bidiweb/web-stream-reference-implementation">https://github.com/bidiweb/web-stream-reference-implementation</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -1680,7 +1685,7 @@ li > p:last-of-type:only-child {
 <div dir="auto" class="left"><span class="org">Google, Inc.</span></div>
 <div class="email">
 <span>Email:</span>
-<a href="mailto:web@google.com" class="email">web@google.com</a>
+<a href="mailto:(web|wenboz)@google.com" class="email">(web|wenboz)@google.com</a>
 </div>
 </address>
 </section>
