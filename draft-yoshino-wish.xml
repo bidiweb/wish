@@ -19,7 +19,7 @@
 ]>
 
 
-<rfc ipr="trust200902" docName="draft-yoshino-wish-04" category="std" consensus="true">
+<rfc ipr="trust200902" docName="draft-yoshino-wish-04" category="std" consensus="true" submissionType="IETF">
   <front>
     <title>web-stream: A General Purpose Message Framing over Byte-Stream Oriented Wire Protocols</title>
 
@@ -32,11 +32,11 @@
     <author initials="W." surname="Zhu" fullname="Wenbo Zhu">
       <organization>Google, Inc.</organization>
       <address>
-        <email>web@google.com</email>
+        <email>(web|wenboz)@google.com</email>
       </address>
     </author>
 
-    <date year="2026" month="May" day="18"/>
+    <date year="2026" month="June" day="27"/>
 
     
     
@@ -45,13 +45,11 @@
     <abstract>
 
 
-<?line 76?>
+<?line 78?>
 
-<t>This document defines a general-purpose message framing named <spanx style="verb">web-stream</spanx>, which supports message-based communication over any byte-stream oriented L7 protocols, in particular HTTP (as in its standard semantics <xref target="RFC9110"/>).</t>
+<t>This document defines a general-purpose message framing named <spanx style="verb">web-stream</spanx>, which supports message-based communication over any byte-stream oriented L4 or L7 protocols, in particular HTTP as in its standard semantics <xref target="RFC9110"/>.</t>
 
-<t><spanx style="verb">web-stream</spanx> can be viewed as a binary alternative to the framing defined for the server-sent events (SSE) <xref target="SSE"/>. This was the original goal when the initial version of the proposal <xref target="-yoshino-wish"/> was published in 2017.</t>
-
-<t>For the rest of the document, we will use the term WiSH (i.e. Web in Strict HTTP) to refer to the core use case behind this proposal, and <spanx style="verb">web-stream</spanx> to refer to the <spanx style="verb">web-stream</spanx> framing format.</t>
+<t><spanx style="verb">web-stream</spanx> can be viewed as a binary alternative to the framing defined for the server-sent events (SSE) <xref target="SSE"/>. This was the original goal when the initial version of this proposal was published in 2017.</t>
 
 
 
@@ -74,18 +72,18 @@
 
 <t>WebSockets realized native client-server full-duplex message-based communication for the Web by introducing both a new Web API and a new wire protocol (the WebSocket Protocol). It has been implemented and deployed widely, but the wire protocol is not compatible with the broad HTTP ecosystem <xref target="BidiwebSurvey"/>. Intermediaries and frameworks have to be upgraded to understand the wire protocol to support WebSockets.</t>
 
-<t>This Internet-Draft addresses the aforementioned problem space with a solution fully compliant with standard HTTP semantics, informally referred to as Web in Strict HTTP (WiSH).</t>
+<t>This Internet-Draft addresses the aforementioned problem space with a solution fully compliant with the standard HTTP semantics, informally referred to as Web in Strict HTTP (WiSH).</t>
 
 </section>
 <section anchor="introduction"><name>Introduction</name>
 
-<t><spanx style="verb">web-stream</spanx> offers a general-purpose message framing for use over the standard HTTP semantics to provide full-duplex messaging semantics. The framing is compatible with the well-adopted and security-proven base framing of the WebSocket Protocol <xref target="RFC6455"/>. The underlying communication protocols providing the standard HTTP semantics can be HTTP/1.1 <xref target="RFC7231"/>, HTTP/2 <xref target="RFC7540"/>, HTTP/3 <xref target="RFC9114"/>, or any future protocols. The <spanx style="verb">web-stream</spanx> framing can also be used over any other byte-stream oriented L7 protocols (over TCP or QUIC <xref target="QUIC"/>).</t>
+<t><spanx style="verb">web-stream</spanx> offers a general-purpose message framing over a byte-stream. The framing is compatible with the well-adopted and security-proven base framing of the WebSocket Protocol <xref target="RFC6455"/>. The underlying communication protocols providing the standard HTTP semantics can be HTTP/1.1 <xref target="RFC7231"/>, HTTP/2 <xref target="RFC7540"/>, HTTP/3 <xref target="RFC9114"/>. The <spanx style="verb">web-stream</spanx> framing can also be used over any other byte-stream oriented protocols (over TCP or QUIC <xref target="QUIC"/>).</t>
 
-<t>Transport protocol features such as multiplexing and session priority are provided by the underlying L4 protocol <xref target="TransportAbstraction"/>.</t>
+<t>Transport-level features such as multiplexing and session priority are provided by the underlying byte-stream protocol <xref target="TransportAbstraction"/>.</t>
 
-<t>HTTP implementations may not allow earlier 2xx responses <xref target="RFC7540"/>, especially when HTTP/1.1 is used as the underlying transport. In such cases, parallel HTTP requests may be used to support full-duplex messaging between the client and server. Separately, when HTTP body streaming is unsupported by the Web client <xref target="FetchBody"/> or blocked by intermediaries, multiple short-lived HTTP requests may be used to send messages between the client and server.</t>
+<t>HTTP implementations may not allow earlier 2xx responses <xref target="RFC7540"/> or full-duplex communication <xref target="FullDuplexHTTP"/>, especially when HTTP/1.1 is used as the underlying byte-stream protocol. In such cases, parallel HTTP requests may be used to support full-duplex messaging between the client and server. Separately, when HTTP body streaming is unsupported by the Web client <xref target="FetchBody"/> or blocked by intermediaries, multiple short-lived HTTP requests may be used to send messages between the client and server.</t>
 
-<t><spanx style="verb">web-stream</spanx> complies with the HTTP semantics (as opposed to turning it to a transport protocol). Consequently, while it utilizes the base framing of the WebSocket Protocol, it drops the opening handshake and the closing handshake.</t>
+<t><spanx style="verb">web-stream</spanx> strictly complies with the HTTP semantics. Consequently, while <spanx style="verb">web-stream</spanx> utilizes the base framing of the WebSocket Protocol, <spanx style="verb">web-stream</spanx> drops the opening handshake and the closing handshake of the WebSocket Protocol.</t>
 
 </section>
 <section anchor="conformance-requirements-and-terminology"><name>Conformance Requirements and Terminology</name>
@@ -101,26 +99,26 @@
 </section>
 <section anchor="web-stream-over-http"><name>Web-Stream over HTTP</name>
 
-<t>This section describes how to use <spanx style="verb">web-stream</spanx> over the HTTP semantics <xref target="RFC9110"/>.</t>
+<t>This section describes how to use <spanx style="verb">web-stream</spanx> over HTTP <xref target="RFC9110"/>.</t>
 
-<t>To use <spanx style="verb">web-stream</spanx> for an HTTP request message or HTTP response message, the content part (aka body part) MUST be a sequence of zero or more <spanx style="verb">web-stream</spanx> frames defined in Section XXX.</t>
+<t>To use <spanx style="verb">web-stream</spanx> with an HTTP request or response, the content part (aka body part) MUST be a sequence of zero or more <spanx style="verb">web-stream</spanx> frames defined in <xref target="framing"/>.</t>
 
-<t>The <spanx style="verb">Content-Type</spanx> header for an HTTP message using <spanx style="verb">web-stream</spanx> MUST be set to the <spanx style="verb">web-stream</spanx> media type, <spanx style="verb">application/web-stream</spanx>, which includes an optional <spanx style="verb">message</spanx> parameter.</t>
+<t>The <spanx style="verb">Content-Type</spanx> header for an HTTP request or response using <spanx style="verb">web-stream</spanx> MUST be set to the <spanx style="verb">web-stream</spanx> media type, <spanx style="verb">application/web-stream</spanx>, which includes an optional <spanx style="verb">message</spanx> parameter.</t>
 
 <t>Example:</t>
 
 <t><spanx style="verb">Content-Type: application/web-stream; message="application/json"</spanx></t>
 
-<t>The <spanx style="verb">message</spanx> parameter specifies the content type and encoding of the data exchanged within the payload of the <spanx style="verb">web-stream</spanx> messages.</t>
+<t>The <spanx style="verb">message</spanx> parameter specifies the content type of the <spanx style="verb">web-stream</spanx> message payload.</t>
 
-<t>The standard HTTP (REST) semantics should be followed, particularly regarding the choice of the HTTP method.</t>
+<t>The standard HTTP semantics should be followed, particularly regarding the choice of HTTP method and Entity headers.</t>
 
-<t>Some HTTP semantics, such as the <spanx style="verb">Cache-Control</spanx> header, may not be applicable when the HTTP body is streamed. However, such a limitation is not specific to <spanx style="verb">web-stream</spanx>.</t>
+<t>Some HTTP semantics, such as <spanx style="verb">Cache-Control</spanx>, may not be applicable when the HTTP body is streamed to the application. However, such limitations are not specific to <spanx style="verb">web-stream</spanx>. It's also possible to use <spanx style="verb">web-stream</spanx> without application-level streaming, for example, to send batched messages over HTTP.</t>
 
 </section>
 <section anchor="framing"><name>Framing</name>
 
-<t>The <spanx style="verb">web-stream</spanx> framing is largely compatible with the base framing protocol of the WebSocket Protocol <xref target="RFC6455"/>, though some fields are used differently from the WebSocket Protocol.</t>
+<t>The <spanx style="verb">web-stream</spanx> framing is designed to be compatible with the base framing protocol of the WebSocket Protocol <xref target="RFC6455"/>.</t>
 
 <t>A high-level overview of the framing is provided in the figure below.</t>
 
@@ -154,7 +152,7 @@
 </section>
 <section anchor="payload-compression"><name>Payload Compression</name>
 
-<t><spanx style="verb">web-stream</spanx> defines the CMP bit as the second most significant bit of the first octet of a frame. The CMP bit in the first frame of a message indicates whether that message's payload is compressed. When the message payload is compressed, the CMP bit of the first frame MUST be set to 1; otherwise, it MUST be set to 0. The CMP bit MUST always be set to 0 for all non-first frames. See Section XXX for details of the payload compression.</t>
+<t><spanx style="verb">web-stream</spanx> defines the CMP bit as the second most significant bit of the first octet of a frame. The CMP bit in the first frame of a message indicates whether that message's payload is compressed. When the message payload is compressed, the CMP bit of the first frame MUST be set to 1; otherwise, it MUST be set to 0. The CMP bit MUST always be set to 0 for all non-first frames. See <xref target="compression"/> for details of the payload compression.</t>
 
 </section>
 <section anchor="opcode"><name>Opcode</name>
@@ -172,34 +170,38 @@
 
 <t>Any values not listed above are reserved.</t>
 
-<t>The continuation frame, text message, and binary message opcode retain the same meaning as the WebSocket Protocol.</t>
+<t>The opcodes for continuation frames, text messages, and binary messages are identical to those specified in the WebSocket Protocol.</t>
 
-<t><spanx style="verb">web-stream</spanx> introduces the metadata message opcode (%x3), which is used for exchanging metadata. When the opcode field of the first frame is set to %x3, the message contains metadata. The application-level protocol determines the encoding of the payload of metadata messages. Support for metadata is optional; <spanx style="verb">web-stream</spanx> implementations that do not support or consume metadata messages MAY discard them. The WebSocket Protocol's connection close frame opcode (%x8) is dropped for <spanx style="verb">web-stream</spanx>. The ping (%x9) and pong (%xA) control frames are retained from the WebSocket Protocol. <spanx style="verb">web-stream</spanx> endpoints MAY alternatively rely on keep-alive mechanisms provided by the underlying transport.</t>
+<t><spanx style="verb">web-stream</spanx> introduces the metadata message opcode (%x3), which is used for exchanging in-stream metadata between the client and server. When the opcode field of the first frame is set to %x3, the message contains metadata. The application-level protocol determines the encoding of the metadata message payload. Support for metadata is optional; <spanx style="verb">web-stream</spanx> implementations that do not support or consume metadata messages MAY discard them.</t>
+
+<t>We don't expect the WebSocket Protocol to introduce any new opcodes in future.</t>
+
+<t>The WebSocket Protocol's connection close frame opcode (%x8) is ignored for <spanx style="verb">web-stream</spanx>. The ping (%x9) and pong (%xA) control frames are retained from the WebSocket Protocol. <spanx style="verb">web-stream</spanx> endpoints MAY alternatively rely on keep-alive mechanisms provided by the underlying transport.</t>
 
 </section>
 </section>
-<section anchor="compression-over-http"><name>Compression over HTTP</name>
+<section anchor="compression"><name>Compression over HTTP</name>
 
 <section anchor="general-guidelines-about-compression"><name>General Guidelines about Compression</name>
 
-<t>For short-lived streaming, the content codings (aka HTTP body compression) MAY be applied in the underlying HTTP semantics layer for <spanx style="verb">web-stream</spanx> as specified in Section 8.4. Content-Encoding of <xref target="RFC9110"/>. This is transparent to the <spanx style="verb">web-stream</spanx> framing and should perform well for short-lived streaming.</t>
+<t>For short-lived streaming, the content codings (aka HTTP body compression) MAY be applied in the underlying HTTP layer for <spanx style="verb">web-stream</spanx> as specified in Section 8.4. Content-Encoding of <xref target="RFC9110"/>. This is transparent to the <spanx style="verb">web-stream</spanx> framing and should perform well for short-lived streaming.</t>
 
-<t>For long-lived streaming, some compression mechanisms like Per-message Compression for WebSocket (PMCE) <xref target="RFC7692"/> may provide better performance. Standardization of such a mechanism with web--stream is planned for the future. For now, experimental implementations may port PMCE to <spanx style="verb">web-stream</spanx> as described in this section. We call this <spanx style="verb">web-stream</spanx> compression.</t>
+<t>For long-lived streaming, Per-message Compression for WebSocket (PMCE) <xref target="RFC7692"/> may provide better performance. Implementations may port PMCE to <spanx style="verb">web-stream</spanx> as described in the following section.</t>
 
-<t>It's RECOMMENDED that <spanx style="verb">web-stream</spanx> implementations coordinate with the underlying HTTP semantics layer to decide whether to enable the <spanx style="verb">web-stream</spanx> compression. Only either of the <spanx style="verb">web-stream</spanx> compression or content coding should be enabled to avoid double compressing data.</t>
+<t><spanx style="verb">web-stream</spanx> compression and HTTP compression SHOULD NOT be enabled at the same time to avoid double compression.</t>
 
 </section>
 <section anchor="web-stream-compression"><name><spanx style="verb">web-stream</spanx> Compression</name>
 
-<t><xref target="RFC7692"/> defined a general framework on how to implement a message-oriented compression for <xref target="RFC6455"/> using its extension framework. This is named Per-message Compression for WebSocket (PMCE). The <spanx style="verb">web-stream</spanx> compression is an adaptation (port) of PMCE for <spanx style="verb">web-stream</spanx>.</t>
+<t><xref target="RFC7692"/> defined a general framework on how to implement message-oriented compression for <xref target="RFC6455"/> using its extension framework. This is named Per-message Compression for WebSocket (PMCE). The <spanx style="verb">web-stream</spanx> compression is an adaptation (port) of PMCE for <spanx style="verb">web-stream</spanx>.</t>
 
 <section anchor="negotiation"><name>Negotiation</name>
 
-<t>Enabling the <spanx style="verb">web-stream</spanx> compression requires the participating endpoints to perform the extension negotiation defined in <xref target="RFC7692"/> through the headers of the HTTP request message and HTTP response message of the underlying HTTP semantics layer. The name of the header MUST be <spanx style="verb">Web-Stream-Extensions</spanx> instead of <spanx style="verb">Sec-WebSocket-Extensions</spanx>.</t>
+<t>Enabling the <spanx style="verb">web-stream</spanx> compression requires the participating endpoints to perform the extension negotiation defined in <xref target="RFC7692"/> through HTTP request and response headers. The name of the header MUST be <spanx style="verb">Web-Stream-Extensions</spanx> instead of <spanx style="verb">Sec-WebSocket-Extensions</spanx>.</t>
 
 <t>Example negotiation:</t>
 
-<t>The client includes the following header in the HTTP request message to offer use of a compression that is equivalent to the <spanx style="verb">permessage-deflate</spanx> PMCE for the WebSocket Protocol.</t>
+<t>The client includes the following header in HTTP request to offer use of a compression that is equivalent to the <spanx style="verb">permessage-deflate</spanx> PMCE for the WebSocket Protocol.</t>
 
 <t><spanx style="verb">Web-Stream-Extensions: permessage-deflate</spanx></t>
 
@@ -207,7 +209,7 @@
 
 <t><spanx style="verb">Web-Stream-Extensions: permessage-deflate; client_max_window_bits=10</spanx></t>
 
-<t>The server includes the following header in the HTTP response message to accept use of the compression as follows:</t>
+<t>The server includes the following header in HTTP response to accept use of the compression as follows:</t>
 
 <t><spanx style="verb">Web-Stream-Extensions: permessage-deflate</spanx></t>
 
@@ -221,7 +223,9 @@
 </section>
 <section anchor="compression-methods-other-than-deflate"><name>Compression Methods other than DEFLATE</name>
 
-<t>In addition to DEFLATE, <spanx style="verb">web-stream</spanx> compression variants for other compression algorithms such as Zstandard can be defined.</t>
+<t>In addition to DEFLATE, the only compression algorithm supported by WebSocket, <spanx style="verb">web-stream</spanx> may support other compression algorithms such as Zstandard.</t>
+
+<t>A dedicated I-D will be published for <spanx style="verb">web-stream</spanx> compression in future.</t>
 
 </section>
 </section>
@@ -235,7 +239,7 @@
 </section>
 <section anchor="acknowledgements"><name>Acknowledgements</name>
 
-<t>We are grateful for the feedback received on the original version of this draft <xref target="-yoshino-wish"/> from the <eref target="https://datatracker.ietf.org/wg/hybi/about/">IETF BiDirectional or Server-Initiated HTTP (hybi) Working Group</eref> and <eref target="https://httpwg.org/">the IETF HTTP Working Group</eref> during 2016-2017.</t>
+<t>We are grateful for the feedback received on the original version of this draft from the <eref target="https://datatracker.ietf.org/wg/hybi/about/">IETF BiDirectional or Server-Initiated HTTP (hybi) Working Group</eref> and <eref target="https://httpwg.org/">the IETF HTTP Working Group</eref> during 2016-2017.</t>
 
 </section>
 
@@ -262,19 +266,6 @@
 
     <references title='Informative References' anchor="sec-informative-references">
 
-<reference anchor="-yoshino-wish" target="https://datatracker.ietf.org/doc/html/draft-yoshino-wish">
-  <front>
-    <title>WiSH: A General Purpose Message Framing over Byte-Stream Oriented Wire Protocols (HTTP)</title>
-    <author initials="T." surname="Yoshino" fullname="Takeshi Yoshino">
-      <organization></organization>
-    </author>
-    <author initials="W." surname="Zhu" fullname="Wenbo Zhu">
-      <organization></organization>
-    </author>
-    <date year="2017"/>
-  </front>
-  <seriesInfo name="I-D" value="yoshino-wish"/>
-</reference>
 <reference anchor="FetchBody" target="https://fetch.spec.whatwg.org/#concept-body-stream">
   <front>
     <title>Fetch Standard - body stream</title>
@@ -306,6 +297,18 @@
     <date year="2017" month="May"/>
   </front>
 </reference>
+<reference anchor="FullDuplexHTTP" target="https://datatracker.ietf.org/doc/html/draft-zhu-http-fullduplex">
+  <front>
+    <title>Implications of Full-Duplex HTTP</title>
+    <author initials="W." surname="Zhu" fullname="Wenbo Zhu">
+      <organization></organization>
+    </author>
+    <author initials="M." surname="Jennings" fullname="Mike Jennings">
+      <organization></organization>
+    </author>
+    <date year="2013" month="November"/>
+  </front>
+</reference>
 <reference anchor="BidiwebSurvey" target="https://github.com/bidiweb/bidiweb-semantics/blob/master/SurveyOfProtocolGaps.md">
   <front>
     <title>Non Request-Response Communication over the Web, and What's Missing</title>
@@ -327,6 +330,15 @@
     <date year="2016" month="July"/>
   </front>
 </reference>
+<reference anchor="WebStreamReferecenImplementation" target="https://github.com/bidiweb/web-stream-reference-implementation">
+  <front>
+    <title>web-stream reference implementation in C++</title>
+    <author >
+      <organization></organization>
+    </author>
+    <date year="n.d."/>
+  </front>
+</reference>
 
 
     </references>
@@ -338,114 +350,113 @@
   </back>
 
 <!-- ##markdown-source:
-H4sIAAAAAAAAA71b+1PbSLb+3X9FF6lbAxnLPMIkE6ZStYRAwlQI3EAqM7uz
-FdpS2+6NLHnVEo4nMH/7/c7phyRbhuTW1ppKsOV+nOd3Ht1EUdQrdZmqA7Ex
-V8PIlIWS0wNxKF6rTBUyFRdVMcuNEmfKGDlW4qSQU52NRX6jCvFyUarokueI
-80KrrFSJ+KgLJS6KvMzjPDUbvSSPMznFDkkhR2W0yM1EZ3k012YS7ez3enpW
-HIiyqEy5t7PzfGevF8vyQJgy6fVkVU7y4qAXCbvClfysMFv8btfoCaGmUqeY
-7lb9Uaty9DdTyiKVWayKQV6Mw+yPKhvm4u+TCvPw/EC8zvNxqvriNIsH9VqQ
-w9/G/M0gzqe9XpYXU1nqG3WAMe9PjvZ2d5+7t0/3f/rJvX2292TXv/1pf8e/
-ffp8z719vru7U7/dPwDj2ai5dEsy9EAIrxrI9PLNf1IrYvPN1dXF1obdRRZj
-BZFPynJmDra3E1nKspDxZ8iP5ElC3IYWtyflNN1e1SIv4lVF7yOhMwNtDRqK
-otc6JYYZHwdOPfXoptKEAGl4trez+4w/GgX2DMnxwE06jV4diCXiTlQZT17m
-yaItVH4sLkuZJbJIQMIQQ4T1gG7BjGjGwMxUPJhPZDkfs2QexTlMbVZGNN95
-0IpInMV9fHN49fE1nvzvh9OjNjn8BCr+8OoieikNVHZWpaWepeoL3oNIcani
-Ckq8KmRmZnlRdhM5n88HxSiOVKLLnB1gGx/p3/OdnZ01YoNRggQasLFOm78O
-xOlCZWNZtPTzq8xk6ws3/Gwgrib51ORZa/iZLEqdtb6yOj2TC+h1bxePLi+P
-26J5c3X2VrzVN2ThDX1dqgLmHhkYuFA3+N90S4TMdkVrUxYufGcbTj41Axr0
-yNQrRnbFBxXZpp/t8qVONEDkssJiSzb3Ls/Ee/XvSpkyeq+gxQxOfAQCqkwD
-9jS+ZhcuJwqWP+yz3j+C6h+MONMGOht38zjW5aQaEmBtD+32/je4mcqs1LHZ
-Hqb5cHsqTamKbUvd+chDwms5M4Np8l/3ZdhPJQuW3T4eB+M+HBrCIBJJS4TE
-cFT6UZGsh32rXB5Yoa3s72KlSpmPp71eL4oi4Vfu9a4m2gggaDUlW03USGfK
-CCnGFs6jmYPzqYPzkYNz2isR13Vkvu6L+UQDtkw1I+qNnxINGTLiVVOS2UIM
-KSLYFWC+LiK8fSZmPh70waiYkW/GVSoLQdFBbEpDjzV2Md7rgjGJr19dULu7
-2xr0ek0iRSwzMVTiRqs5YRexOtQZqVmmML6MY54oc7Zzz6wVSyIQFPm5WXFv
-sQlo2MLO+HV3RwADsc6xPA0HX2PskYpxjv/mE5XxY53pUuMBljIskxE/BueQ
-OJ5//dqKZXd3vOCsGqb4BGogAHLrP8DiiSOsgPf6dbxSoRcl5jpNRQU90jfg
-c8pxW2zqgRqQO9NiiMs6LlnAWySBQo3I360o4hz4TgvE0CYkCLISfAEuPb0W
-EVrCXl6k9aUXrs00Bs4ypzpJUtXrvUSQHxd5lSW9F+FF5qpAx0TeEA2Qo4H4
-KeuQZammM+gBO+kpSLpRS/Znt6UNlywx85A24OUfVC5Ykqn+E0t+2wY6a9pM
-mUdxqtnXkPawbyN6lRhVFnlSxWSUIlNzVsrhxSkLVQqKEWQry25ohUeel5J6
-6BE7iLO8OaVW3pXAHxa9zJE9gafAhTN5S1VkyRSjKk2jpKIQf68fe48gaoeL
-wAXRMczLSScv9KRFmNh0S1jaQi64xZKZgBfWNfSaqqlFCFopUbM0X+DDXCcq
-XfTFsCpXuRYw0Swvie4ZaB6m9D0oo4HDIpeJFZiKc7NA+JlCza0oSd58mpHL
-IG2RlJ3w5qQANc+Lz8ZaI+wOsFLNxoVMQBI+wnTh2IROHUThe4eTNd9m4OCY
-t8tUGb2ihFbIJIFfG2VVKiFylgLEj42wIliawkBk7DiDteRpZdUDNS6Y9VQD
-HO33ATGZ8QCbBLRsTjSF3bawjED+qwghNglACF57p07pHKdevGi6a8vh8xHW
-/JbYQkZFUBPyjTUUE3Hk6lB/h8HSSmEoIXK9AWTcZQ5zhTVkks+8hRlKa3W5
-iBhQEDgI+/wiDmZXzdbGHyrAbCRQ1hTSxSo2hCjn+KAR9zHsohc93d4d7Nqd
-qL67u+vbp3vuGQq98OxJiIj79Cy3kXdUlVXDJJ2IOiGatpWpsSZOIBDCN3wc
-7x4M4mKTZ1wdXdDuVE+AJPplI3RIrWoHGSlJ5CG+V8gpYIJTX3IQQVY5xlgZ
-6pyUJKTlhswhITAq25J/u1+v/vVrVzYHdfV6LPEANawmbI4UmkAEvpHPhUIN
-r8HO3pcvFHE5VTZtuSsH2HAljvdBYzA9lqAD6AZ9Ie8jvLFsU6yFXyL7wUoq
-tdZQ2CTdEuUV0sCTbk8YqnKuXOLhApAVIsH9AAULbVIyjAaCm2Wnc5sqc9vU
-IiZscCt+/RoKWsRJaBppPVwjcaGhgaH9oE9hJpTrpohByQMMqizEXPMQQ8tp
-H0MgpgVnX/IsyijzGcER7wXby5jlkhGwVk6wIQSnI1I8aM1KKzaKwZgA6KXI
-ahX8bZDRp3kJEimXMM4U7z4BR2aCQkb4KBKnuWl9Q5z2QAgjN4p9ruG0jRA2
-Ul1B7Mgh03y8aKHzfS+bCX1WsN68SIzYOPtwebXRt7/Fu3N+//4YHvz++BW9
-v3xz+PZteONHXL45//D2Vf2unnl0fnZ2/O6VnXx2+PuGzR43zi+uTs/fHb7d
-sGlTszYh97ZRlk1pVqjS+lGiTFzooc2I2QupD8bO3BLGbFJwBuMSMvg4ohDn
-PpRWo8Ig/ch0TGgymcIkPPRswIr0jPEuVZJB2obbeCIJOhDVNsjaN0AS7EaM
-gJVWZXJIJoPdDGG6mpmNrTV8BLucKpk1bMXrQGwGHdRStYKDyw22rJdQTdRI
-wThf8AwN2nZSdImG6qFaAGCJYWykY0u9jz/NTAxbkmCwKIJ6H6mHSHNCaGvJ
-5LKASPg6oQdteSNTTBxQ2tAo6/ptWk0oubwZeEJs3CQZkvQyl2uBJiXNYint
-4n8YSci9NBqqt5LgwgMO6buSHKcIGzp9xSVoxibuwfKQAyIs0OZmKYKGFGYJ
-bholKsW/jpkjDtMtRAyJUl74565P477ou1KNeC2tSW/Kz9LiOH3cEuzAEACS
-RIYuWAIs7U9V5LTqlKq8lRRAtdRx6Zj/7bffXMV0fWR3jK4WM3UtJvARKiEa
-DHjCbYXS2sATZFTZWSZyyBAlVu6LazkDilsb2O5oPegsTquEM3RgKI1CyXTt
-Nr/mODqFtxWg+/iLJCM+QJxoUn8gurf4xbPwYqM54F8mzzaunRRW9/FW62KB
-Vwwxw8YJ8edJw9mpvS3UF8BKNnaY4MBqJhcp1Spu4JKEbEj09Wsrd9x8f3x5
-tdWwPITbKk1I4qOcshmV9Bt+yKn/GLM9fMSTXFsbCVYM1iZ5gt0u8+myYfdD
-vsZkHsl4oiIScJGn3jL6IZ0iO7TS5DzcN0bq3IN8jblUyUC8AbE3jDG8hUj1
-VJeuxrY1XkArGFJTROTj7hyi14pwndkuFkupV+cqp5WisRnRQ0b5TdUA+Wde
-jVGCkeRgFyliqyxcipNoKpA4m8D6+XTNgmDmUEz0eBKlEEfKEEPtLE9Cg42Q
-DTsrGukxpfxDBb1jmb/++ot6hNc7YvW12/Fsr+PZk2shuNGIVXYx4onYFz+J
-p+KZ+Fk8F9/xzK1z/WPkf+yrfuc/3//60S90e3J7dLuDn3wGL1MC7y6cF/Hr
-9viLCwneuRCYxlCye92GhU5vz24FfvbFEGkavWuNvN19yl/o0fJKUMHu3tN6
-oXe3F7yQnyhun9kl3een+/ct9Cws9KCMRHTvTy2jDo1+z6um6KEdv1lrD+3o
-dfiKsPI+ih7a8b8vowcoeuj14zV7bK930TKOXnuUBbYl++Fgs8bcl2EI2JlQ
-8AKI2HaxG+fgpSV/ntsEHgRpG1Z8/FBfkCAjZFBM02Ya0tS12EZAPQ6ld6+D
-t5PTd+wmoSZCeNFZ5RqSRIRwLq8yDiySntZr1tSEvMEIwCQFMJnaJESW6xF9
-IM4zFbIlt3teGZ8rFQo5PbePZWegto0Wz4XOEsomOEWQZS1IIspiNiUxjq3R
-2iVPwtEECLKpb60IR9ja6X1XdbLQrE470rK1cnaJR61kbpMYzgCpaOdAiUKI
-WylrifDNS469wUiHivqd9tgiLyEJg9La68bPhKg+Z/k8GzSc4wihu7AtoiUP
-cabUosEffNGqR2cX1r5MU6LTHAm40eOMqxAol4Z4y9cFnbugErQ1pJWO1bNf
-LYRgGtpQZ+Ah2AHyIO6qsT24r38wQSKuecktYWRFH33W5BfqHNdvcdYi29Ky
-pO/dX2xrb66N4ubE0vc7f7S5469lOpcL0xxli4A0RXaWRY3tDHWcVLOU4JHA
-HalTE07CHCdxrUrS8DkbXc/r0Vv+hjXGDWvA/baNVb59XjuFHW5QATwW//Nl
-B5sjheSzzw5DFzxoNwzqVGUJiA1qsDP27p/hjh7bc57cPwfpt+RCoT3reYOB
-GfFnHx82H6MwR/KIah1FOApKzplTbbiPMqQjMwoChF3FjUqcV68Ko99i1DZu
-lhhxUFKQPt3xF9HvexvOszrxv6W2cCpmnIkvse722YTQthpgzkGGDMrVUrSn
-n9vwmBbgdfgEV/psyFi/33IykgpYM41lSViN2tBl56FACDHVN0bapV+jwFvm
-kpzF93Yp6vivtQlF7i9ta19uXzOSJLmtkdxSWAlMmGq6KlYjzg5/RzliYioj
-Qd3Ucreqrx8IY7LMuTE1J1U7AkMzP28RpdTcnDmttEozXpkNFmOfb7E1kaHS
-x8MtFnSRpz6EWQMl0dNa9xRJbYEgCM1yTZ0u4qxx0s/1Lv4D9Z+VmkWS+tB1
-JDP3HSjUDXtuwQaMeqCHhNLT35V7XdHJpb1xMcyr8qGg1RHFCP2aHfTQrW/3
-gqyxGdsOquvrBrJusWh8RV4naQ2Gl3pYqVy4Nk9L1jI069r9op8H+9wy517L
-ccP8m70we3GCUh8Wriy4X3LP7QHu+duWhuvp8TGezT265OJuS1CTclVkXJc3
-hNK0hFR/RvarishjQFPltF1thZsXZ0d8YcDds7y745aHP6scqpKaQ6EHGSNV
-8JfH9J/uWsLItznqtIoTJBKCP2ujEj+lxmt9NcWe6tl8EClRHxCIfTSDQdp5
-rsVoQAQvd01Weutlo/dJt0ZETKGdn64cttTx+pRuiDU6/haN7sWrOM+pA4Vs
-qG67PGSHXLbEJN6QP+W+AFixniaFyOYBAErznK7+WtMeLGo2XKrRT7Ob2SPz
-m1wnQNyKdg/z6SYRhYreUpT7Fq/v9ZrW5Nux4Sy9vo9AUOa60UGsdZoZhePZ
-eMl6G20q16al21VcNJoQ+mmD2kftHbDvcYmOM+YmHZo7t4hFM1epbZJxbpFW
-2EBXggck+ejRI/FOjfNS24Kxd0xq8OXn2q3c8YdxwZf6n5pafZhXBwu6X+BA
-xdayXhhZvWGzNd5UUTkpuNVHE23f07S6qMs9fQKyzqa+n/WAA1jRZi5NrHcN
-mft1fcoRHXtODOVYSABt5nENrI6Czpqj6o55k/cD4XJEe/4a2u/tRNvRobP1
-zEPQfDvEXvsYcQ5e64oBo3V8FELCjM6UrWVDDykQ47o2lfU5ZqcoDkTHaq7L
-HVr64QxMJu40aS0doJOuFRonCqo0vn3jX5xQP03ll08QY5LPP6HQMi92d66b
-99S+S+hLhkVAFdP9cC92mzHUgv9/0n7t3NK33FeP4v0GoSxzRfZ31dcMca5q
-bhTND1TCdKfsB49dGwReZ0vgpZKNZsXO5tQ6fuQLGusykr4NiLyA34bGPn7s
-auXHj+kinq9BQnvA1hr5/V2Cfid/3sMbTDoNNPH4jI9tjLuyA5/KxKvjk7eH
-V8d8Fgt71oxnkKp73l8PnzeyoAtltsdjV2wZTn2Q68+D/h7OpZwDOdwkUj9c
-nUQ/t24udGTO1urvP2CpYb0F4n98OpE6XcKDo1C4/PEpnD0tuDCr6GCeQpHO
-gDeI5JZAuuYkfOqVLRX8y9dBmlT5S5X1ncFyMaNmIx0xTVT8mcVoN+ENdbmw
-J+Rc/khTtrJ5DiTti7YNQoy9qlUf9DZZsBPsVck1FZI/MffXO5pRsEGi8wTO
-BfKpdumRveI3xpokwRFd1xrqlG5n8QUeFkNChXE+s3eTbZXOkaXPh9I8hPJS
-1LbLAbgtISc6d0oqxa+X5+8IqA0f8PYOY+oJIiEbrzEpOvdnbsd082lUpXUS
-rVQylFi7ULHiGsH5ZbjJ3bqzzeUt3dRcvbEdStR/nB5fnYiX+pW/9YtFsJv7
-Q5FTvgpe+htQm5PFUG+JjzAVwvLXyCRm/9y894+g5uNtmrTNdeS2LaP/QRvz
-vrzqmuXot/vLky2RVAUNoT8ViOhy+aD3fx8BfZ2INwAA
+H4sIAAAAAAAAA71baXPTyLr+7l/RFeoWCVjOQgaGTFF1QhbIFCE5JFRqzplb
+pC217b7Ikq9aivEQ5ref5317kWQrC/fDdQpiy7286/Mu3YmiqFfqMlV7Ym2u
+hpEpCyWne2JfvFOZKmQqzqtilhslTpUxcqzEcSGnOhuL/EYV4u2iVNEFzxFn
+hVZZqRJxpQslzou8zOM8NWu9JI8zOcUOSSFHZbTIzURneTTXZhJt7fZ6phpO
+tTE6zy4XMww7Obo87ulZsSfKojLlztbW662dXizLPWHKpNeTVTnJi71eJOyy
+l/KrwpLiD7twTwg1lTrFdLfVc63K0T9MKYtUZrEqBnkxDrOvVDbMxb8mFebh
++Z54l+fjVPXFSRYP6rXWIZ3bOY39a+MfYx4yiPNpr5flxVSW+kbtYfCn44Od
+7e3X7u3L3V9+cW9f7bzY9m9/2d3yb1++3nFvX29vb9Vvd/d6PZ2NmksfqzKe
+vM2TBX0QwiuNH4uLUmaJLBIRiSGGCKvGNTtSFmMF2U3Kcmb2NjdHNGNgZioe
+zCeynI9JHJtP4hyimZURzXdmwNO9tAW/WEJX7/cvr97hyT8/nxy0yeEnsJ7P
+h+fRW2lgDadVWupZqr7hPYgUFyquYB+XhczMLC/KbiLn8/mgGMWRSnSZs8I2
+8ZH+vd7a2uIpRsHgDEnJEwfZgQQasLZCeiR0ZvbE7wNxslDZWBZujjWC32Um
+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
+IqkKGkKX5iO6zDzo/QfiHVdnYTYAAA==
 
 -->
 
