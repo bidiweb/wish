@@ -77,7 +77,7 @@ informative:
 
 --- abstract
 
-This document defines a general-purpose message framing named `web-stream`, which supports message-based communication over any byte-stream oriented L4 or L7 protocols, in particular HTTP as in its standard semantics {{RFC9110}}.
+This document defines `web-stream`, a general-purpose message framing designed to support message-based communication over any byte-stream oriented L4 or L7 protocols, in particular HTTP as in its standard semantics {{RFC9110}}.
 
 `web-stream` can be viewed as a binary alternative to the framing defined for the server-sent events (SSE) {{SSE}}. This was the original goal when the initial version of this proposal was published in 2017\.
 
@@ -91,9 +91,9 @@ There have been several attempts to improve message-based streaming communicatio
 
 The server-sent events (SSE) {{SSE}} realized message-based streaming communication in the server-to-client direction. It introduced a new Web API and a special message framing format while using HTTP as the wire protocol.
 
-WebSockets realized native client-server full-duplex message-based communication for the Web by introducing both a new Web API and a new wire protocol (the WebSocket Protocol). It has been implemented and deployed widely, but the wire protocol is not compatible with the broad HTTP ecosystem {{BidiwebSurvey}}. Intermediaries and frameworks have to be upgraded to understand the wire protocol to support WebSockets.
+WebSockets realized native client-server full-duplex message-based communication for the Web by introducing both a new Web API and a new wire protocol (the WebSocket Protocol). While widely deployed, the wire protocol is incompatible with the broad HTTP ecosystem {{BidiwebSurvey}}. Consequently, intermediaries and frameworks have to be upgraded to understand the wire protocol to support WebSockets.
 
-This Internet-Draft addresses the aforementioned problem space with a solution fully compliant with the standard HTTP semantics, informally referred to as Web in Strict HTTP (WiSH).
+This Internet-Draft addresses the aforementioned problem space with a solution fully compliant with the standard HTTP semantics, informally referred to as "Web in Strict HTTP" (WiSH).
 
 
 Introduction
@@ -103,7 +103,7 @@ Introduction
 
 Transport-level features such as multiplexing and session priority are provided by the underlying byte-stream protocol {{TransportAbstraction}}.
 
-HTTP implementations may not allow earlier 2xx responses {{RFC7540}} or full-duplex communication {{FullDuplexHTTP}}, especially when HTTP/1.1 is used as the underlying byte-stream protocol. In such cases, parallel HTTP requests may be used to support full-duplex messaging between the client and server. Separately, when HTTP body streaming is unsupported by the Web client {{FetchBody}} or blocked by intermediaries, multiple short-lived HTTP requests may be used to send messages between the client and server. 
+HTTP implementations may not allow earlier 2xx responses {{RFC7540}} or full-duplex communication {{FullDuplexHTTP}}, particularly when HTTP/1.1 is used as the underlying byte-stream protocol. In such cases, parallel HTTP requests can be used to support full-duplex messaging between the client and server. Separately, when HTTP body streaming is unsupported by the Web client {{FetchBody}} or blocked by intermediaries, multiple short-lived HTTP requests can be used to send messages between the client and server. 
 
 `web-stream` strictly complies with the HTTP semantics. Consequently, while `web-stream` utilizes the base framing of the WebSocket Protocol, `web-stream` drops the opening handshake and the closing handshake of the WebSocket Protocol. 
 
@@ -125,7 +125,7 @@ Web-Stream over HTTP
 
 This section describes how to use `web-stream` over HTTP {{RFC9110}}.
 
-To use `web-stream` with an HTTP request or response, the content part (aka body part) MUST be a sequence of zero or more `web-stream` frames defined in {{framing}}.
+To use `web-stream` with an HTTP request or response, the content part (aka body part) MUST be a sequence of zero or more `web-stream` frames, as defined in {{framing}}.
 
 The `Content-Type` header for an HTTP request or response using `web-stream` MUST be set to the `web-stream` media type, `application/web-stream`, which includes an optional `message` parameter.
 
@@ -137,7 +137,7 @@ The `message` parameter specifies the content type of the `web-stream` message p
 
 The standard HTTP semantics should be followed, particularly regarding the choice of HTTP method and Entity headers.
 
-Some HTTP semantics, such as `Cache-Control`, may not be applicable when the HTTP body is streamed to the application. However, such limitations are not specific to `web-stream`. It's also possible to use `web-stream` without application-level streaming, for example, to send batched messages over HTTP. 
+Certain HTTP semantics, such as `Cache-Control`, may not be applicable when the HTTP body is streamed to the application. These limitations are intrinsic to streaming, not `web-stream` specifically. It's also possible to use `web-stream` without application-level streaming, such as sending batched messages over HTTP. 
 
 
 Framing
@@ -167,15 +167,15 @@ A high-level overview of the framing is provided in the figure below.
 Payload length
 --------------
 
-The payload length and extended payload length fields are used to determine the length of the Payload Data field of the frame, following the exact mechanism used in the WebSocket Protocol.
+The payload length and extended payload length fields are used to determine the length of the Payload Data field of the frame, following the exact mechanism defined in the WebSocket Protocol.
 
 
 Fragmentation
 -------------
 
-The FIN bit and the continuation frame opcode enable a fragmentation mechanism, which is identical to that of the WebSocket Protocol. One or more continuous frames represent a `web-stream` message. The FIN bit indicates that the frame is the final frame of a `web-stream` message. For the second and following frames of a `web-stream` message, the opcode field MUST be set to the continuation frame opcode.
+The FIN bit and the continuation frame opcode enable a fragmentation mechanism, which is identical to that of the WebSocket Protocol. One or more continuous frames constitute a `web-stream` message. The FIN bit indicates that the frame is the final frame of a `web-stream` message. For the second and following frames of a `web-stream` message, the opcode field MUST be set to the continuation frame opcode.
 
-The mechanism allows for sending portions of a `web-stream` message with a large payload before the total size of the message is known.
+The mechanism allows for sending portions of a `web-stream` message with a large payload before the total size of the message is determined.
 
 
 Payload Compression
@@ -213,11 +213,11 @@ Compression over HTTP {#compression}
 General Guidelines about Compression
 ------------------------------------
 
-For short-lived streaming, the content codings (aka HTTP body compression) MAY be applied in the underlying HTTP layer for `web-stream` as specified in Section 8.4. Content-Encoding of {{RFC9110}}. This is transparent to the `web-stream` framing and should perform well for short-lived streaming.
+For short-lived streaming, the content codings (for HTTP body) MAY be applied in the underlying HTTP layer for `web-stream` as specified in Section 8.4. Content-Encoding of {{RFC9110}}. HTTP compression is transparent to the `web-stream` framing and is generally efficient for short-lived streaming.
 
 For long-lived streaming, Per-message Compression for WebSocket (PMCE) {{RFC7692}} may provide better performance. Implementations may port PMCE to `web-stream` as described in the following section.
 
-`web-stream` compression and HTTP compression SHOULD NOT be enabled at the same time to avoid double compression.
+`web-stream` compression and HTTP compression SHOULD NOT be enabled simultaneously to avoid redundant compression.
 
 
 `web-stream` Compression
@@ -247,27 +247,25 @@ The server includes the following header in HTTP response to accept use of the c
 
 ### Framing
 
-`web-stream` compression uses the second significant bit of the first octet of a frame to indicate whether the message payload is compressed. It's named "Per-Message Compressed" bit in the PMCE specification. In the `web-stream` framing, this bit is named the **CMP bit**.
+`web-stream` compression uses the second significant bit of the first octet of a frame to indicate whether the message payload is compressed. This bit is referred to as the "Per-Message Compressed" bit in the PMCE specification. In the `web-stream` framing, this bit is named the **CMP bit**.
 
-When the CMP bit is set on the first frame of a message, the message payload MUST be compressed.
+When the CMP bit is set in the first frame of a message, the message payload MUST be compressed.
 
 
 ### Compression Methods other than DEFLATE
 
-In addition to DEFLATE, the only compression algorithm supported by WebSocket, `web-stream` may support other compression algorithms such as Zstandard. 
-
-A dedicated I-D will be published for `web-stream` compression in future.
+While DEFLATE is the only compression algorithm supported by the WebSocket Protocol, `web-stream` may support additional compression algorithms, such as Zstandard. A separate Internet-Draft will be published in the future to specify these `web-stream` compression methods.
 
 
-UTF-8 Requirements
+UTF-8 Vallidation
 ==================
 
-The WebSocket Protocol {{RFC6455}} requires endpoints to \_Fail the WebSocket Connection\_ when they encounter an invalid UTF-8 byte stream in a text message. Consequently, {{RFC6455}} server frameworks typically check for UTF-8 validity.
+The WebSocket Protocol {{RFC6455}} requires the endpoints to \_Fail the WebSocket Connection\_ when they encounter an invalid UTF-8 byte sequence in a text message. Consequently, {{RFC6455}} server frameworks typically check for UTF-8 validity.
 
-In contrast, the contents of `web-stream` text messages also MUST be a valid UTF-8 stream, but `web-stream` endpoints are not REQUIRED to perform UTF-8 validation. This omission offers greater flexibility to server development, for example, a server may opt to perform the UTF-8 validity check within a JSON parser.
+While the contents of `web-stream` text messages also MUST be a valid UTF-8 sequence, `web-stream` endpoints are not REQUIRED to perform UTF-8 validation. This design choice provides greater flexibility to server implementations, which may, for example, choose to perform UTF-8 validation within a JSON parser.
 
 
 Acknowledgements
 ================
 
-We are grateful for the feedback received on the original version of this draft from the [IETF BiDirectional or Server-Initiated HTTP (hybi) Working Group](https://datatracker.ietf.org/wg/hybi/about/) and [the IETF HTTP Working Group](https://httpwg.org/) during 2016-2017.
+The authors gratefully acknowledge the feedback received on the original version of this draft from the [IETF BiDirectional or Server-Initiated HTTP (hybi) Working Group](https://datatracker.ietf.org/wg/hybi/about/) and [the IETF HTTP Working Group](https://httpwg.org/) during 2016-2017.
