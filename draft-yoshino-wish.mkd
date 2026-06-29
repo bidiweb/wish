@@ -11,7 +11,7 @@ author:
   email: tyoshino+ietf@starlancer.org
 - name: Wenbo Zhu
   org: Google, Inc.
-  email: (web|wenboz)@google.com
+  email: wenboz@google.com
 
 normative:
   RFC2119:

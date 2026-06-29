@@ -519,7 +519,7 @@ Authors' Addresses
 
    Wenbo Zhu
    Google, Inc.
-   Email: (web|wenboz)@google.com
+   Email: wenboz@google.com
 
 
 
