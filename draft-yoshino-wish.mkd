@@ -89,7 +89,7 @@ Background
 
 There have been several attempts to improve message-based streaming communication on the Web.
 
-The server-sent events (SSE) {{SSE}} realized message-based streaming communication in the server-to-client direction. It introduced a new Web API and a special message framing format while using HTTP as the wire protocol.
+The server-sent events (SSE) {{SSE}} realized message-based streaming communication in the server-to-client direction. It introduced a new Web API and a special text-based framing format while using HTTP as the wire protocol.
 
 WebSockets realized native client-server full-duplex message-based communication for the Web by introducing both a new Web API and a new wire protocol (the WebSocket Protocol). While widely deployed, the wire protocol is incompatible with the broad HTTP ecosystem {{BidiwebSurvey}}. Consequently, intermediaries and frameworks have to be upgraded to understand the wire protocol to support WebSockets.
 
