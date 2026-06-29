@@ -125,7 +125,7 @@ Web-Stream over HTTP
 
 This section describes how to use `web-stream` over HTTP {{RFC9110}}.
 
-To use `web-stream` with an HTTP request or response, the content part (aka body part) MUST be a sequence of zero or more `web-stream` frames, as defined in {{framing}}.
+To use `web-stream` with an HTTP request or response, the content part (i.e. body part) MUST be a sequence of zero or more `web-stream` frames, as defined in {{framing}}.
 
 The `Content-Type` header for an HTTP request or response using `web-stream` MUST be set to the `web-stream` media type, `application/web-stream`, which includes an optional `message` parameter.
 
@@ -135,7 +135,7 @@ Example:
 
 The `message` parameter specifies the content type of the `web-stream` message payload.
 
-The standard HTTP semantics should be followed, particularly regarding the choice of HTTP method and Entity headers.
+The standard HTTP semantics should be followed, particularly regarding the choice of HTTP method and headers.
 
 Certain HTTP semantics, such as `Cache-Control`, may not be applicable when the HTTP body is streamed to the application. These limitations are intrinsic to streaming, not `web-stream` specifically. It's also possible to use `web-stream` without application-level streaming, such as sending batched messages over HTTP. 
 
